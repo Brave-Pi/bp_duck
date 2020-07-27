@@ -3,6 +3,7 @@ dev.hxml
 --library tink_unittest
 --library hxnodejs
 --library travix
+-D ansi
 -cp test
 -main RunTests
 --js bin/node/test.js

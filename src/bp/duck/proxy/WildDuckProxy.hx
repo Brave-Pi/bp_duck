@@ -7,7 +7,10 @@ import tink.CoreApi;
 // 1.) Translate WildDuck API into tink_web proxy interface
 interface QuotaResetProxy {
 	@:post('/quota/reset')
-	var resetQuota:Noise;
+	var resetQuota:{
+        >BasicResult,
+        ?storageUsed:Int
+    }
 }
 
 interface WildDuckProxy extends QuotaResetProxy {

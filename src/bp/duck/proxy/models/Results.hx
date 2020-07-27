@@ -33,6 +33,7 @@ typedef QuotaGroup = {
 }
 
 typedef UserInfoResult = {
+	>BasicResult,
 	> UserBase,
 	keyInfo:Dynamic,
 	limits:{

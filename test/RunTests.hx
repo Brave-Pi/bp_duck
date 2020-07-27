@@ -8,6 +8,7 @@ import tink.web.routing.*;
 import tink.http.clients.*;
 import tink.web.proxy.Remote;
 import tink.url.Host;
+import tink.testrunner.Reporter;
 import tink.testrunner.*;
 import tink.unit.*;
 
@@ -25,7 +26,9 @@ using bp.test.Utils;
 
 class RunTests {
 	static function main() {
-		Runner.run(TestBatch.make([new Test(),])).handle(Runner.exit);
+		ANSI.stripIfUnavailable = false;
+		var reporter = new BasicReporter(new AnsiFormatter());
+		Runner.run(TestBatch.make([new Test(),]), reporter).handle(Runner.exit);
 	}
 }
 
@@ -59,10 +62,10 @@ class Test {
 			address: 'test$random@brave-pi.io',
 		};
 		trace(request);
-		wildDuckProxy.users().create(request).next(u -> {
-			asserts.assert(u != null && ({
-				userId = u.id;
-			}).attempt(true));
+		wildDuckProxy.users().create(request).next(res -> {
+			asserts.assert(res.success);
+
+			userId = res.id;
 
 			asserts.done();
 		}).tryRecover(e -> {
@@ -75,19 +78,9 @@ class Test {
 	}
 
 	public function user_reset_quota() {
-		wildDuckProxy.users().byId(userId).resetQuota().next(_ -> {
-			asserts.assert(true);
-			asserts.done();
-		}).tryRecover(e -> {
-			trace(e);
-			asserts.assert(e == null);
-			asserts.done();
-		}).eager();
-		return asserts;
-	}
-	public function user_info() {
-		wildDuckProxy.users().byId(userId).info().next(info -> {
-			asserts.assert(info != null);
+		wildDuckProxy.users().byId(userId).resetQuota().next(res -> {
+			asserts.assert(res.success);
+			asserts.assert(res.storageUsed == 0);
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -97,4 +90,35 @@ class Test {
 		return asserts;
 	}
 
+	public function user_info() {
+		wildDuckProxy.users().byId(userId).info().next(res -> {
+			asserts.assert(res.success);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(e == null);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	var newPass:String;
+
+	public function reset_pass() {
+		wildDuckProxy.users().byId(userId).resetPass({
+			sess: "tink_unittest session",
+			ip: "127.0.0.1"
+		}).next(res -> {
+			asserts.assert(res.success);
+
+			newPass = res.password;
+
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(e == null);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
 }
