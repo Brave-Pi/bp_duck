@@ -1,8 +1,8 @@
 package bp.duck.proxy.models;
 
 typedef BasicResult = {
-    ?success:Bool,
-    ?error:String
+	?success:Bool,
+	?error:String
 }
 
 typedef UserUpsertResult = {
@@ -23,24 +23,22 @@ typedef UserSelectResult = {
 	> BasicResult,
 	> PaginatedResult,
 	results:Array<{
-		id:String,
-		username:String,
-		name:String,
-		address:String,
-		tags:Array<String>,
-		targets:Array<String>,
-		enabled2fa:Array<String>,
-		autoreply:Bool,
-		encryptMessages:Bool,
-		encryptForwarded:Bool,
-		quota:{
-			allowed:Int,
-			used:Int
-		},
-		?metaData:Dynamic,
-		hasPasswordSet:Bool,
-		activated:Bool,
-		disabled:Bool,
-		suspended:Bool
+		> UserBase, quota:QuotaBase
 	}>,
 }
+
+typedef QuotaGroup = {
+	> QuotaBase,
+	ttl:Dynamic,
+}
+
+typedef UserInfoResult = {
+	> UserBase,
+	keyInfo:Dynamic,
+	limits:{
+		quota:QuotaBase, recipients:QuotaGroup, forwards:QuotaGroup, received:QuotaGroup, imapUpload:QuotaGroup, imapDownload:QuotaGroup,
+		pop3Download:QuotaGroup,
+	},
+	?fromWhitelist:Array<String>,
+	disabledScopes:Array<String>
+};
