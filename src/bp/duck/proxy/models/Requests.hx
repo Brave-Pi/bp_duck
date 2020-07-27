@@ -1,9 +1,10 @@
 package bp.duck.proxy.models;
 
 typedef UserUpsertRequest = {
-	username:String,
+	>UserBase, >Auditable,
+	?username:String,
 	?name:String,
-	?password:String,
+	
 	?hashedPassword:String,
 	?allowUnsafe:Bool,
 	?address:String,
@@ -16,7 +17,7 @@ typedef UserUpsertRequest = {
 	?encryptMessages:Bool,
 	?encryptForwarded:Bool,
 	?pubKey:String,
-	?metaData:haxe.extern.EitherType<Dynamic, String>,
+	?metaData:Dynamic,
 	?language:String,
 	?targets:Array<String>,
 	?spamLevel:Int,
@@ -37,12 +38,11 @@ typedef UserUpsertRequest = {
 	},
 	?disabledScopes:Array<String>,
 	?fromWhiteList:Array<String>,
-	?sess:String,
 	?ip:String
 };
 
 typedef UserDeleteRequest = {
-	?sess:String,
+	>Auditable,
 	?ip:String
 };
 
@@ -66,7 +66,15 @@ typedef UserLogoutRequest = {
 }
 
 typedef PasswordResetRequest = {
+	>Auditable,
 	?validAfter:String,
-	?sess:String,
+	
 	?ip:String,
+}
+
+typedef UserUpdateRequest = {
+	>UserUpsertRequest,
+	>Auditable,
+	?existingPassword:String,
+	?disable2fa:Bool,
 }

@@ -1,9 +1,16 @@
 package bp.duck.proxy.models;
 
+
+typedef Auditable = {
+	?sess:String
+}
+
+
 typedef UserBase = {
 	?id:String,
 	?username:String,
-	?name:String,
+    ?name:String,
+    ?password:String,
 	?address:String,
 	?tags:Array<String>,
 	?targets:Array<String>,

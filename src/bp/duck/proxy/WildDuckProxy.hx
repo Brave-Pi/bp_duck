@@ -20,9 +20,11 @@ interface WildDuckProxy extends QuotaResetProxy {
 
 interface UserProxy {
 	@:post('/')
-	
-	function create(body:UserUpsertRequest):UserUpsertResult;
-
+    function create(body:UserUpsertRequest):UserUpsertResult;
+    
+    @:get('/resolve/$username')
+    function resolve(username:String):UserResolutionResult;
+    
 	@:sub('/$id')
 	function byId(id:String):OwnUserProxy;
 
@@ -36,6 +38,9 @@ interface OwnUserProxy extends QuotaResetProxy {
 
 	@:delete('/')
     function delete(body:UserDeleteRequest):UserDeleteResult;
+
+    @:put('/')
+    function update(body:UserUpdateRequest):BasicResult;
     
 	@:put('/logout')
     function logOut(body:UserLogoutRequest):BasicResult;

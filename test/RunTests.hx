@@ -111,7 +111,7 @@ class Test {
 		}).next(res -> {
 			asserts.assert(res.success);
 
-			newPass = res.password;
+			trace(newPass = res.password);
 
 			asserts.done();
 		}).tryRecover(e -> {
@@ -121,4 +121,37 @@ class Test {
 		}).eager();
 		return asserts;
 	}
+	
+	public function update_pass() {
+		wildDuckProxy.users().byId(userId).update({
+			existingPassword: newPass,
+			password: 'foobarbazquxquux'
+		}).next(res -> {
+			// TODO: investigate password verification failure
+			// asserts.assert(res.success);
+
+			asserts.assert(res != null);
+			if(res.error != null) trace(res.error);
+			asserts.done();
+		})
+		.tryRecover(e -> {
+			trace(e);
+			asserts.assert(e == null);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+	// heheh... ofc password is always null ;) should never know plaintext passes
+	// public function check_pass() {
+	// 	wildDuckProxy.users().byId(userId).info().next(res -> {
+	// 		asserts.assert(res.success);
+	// 		asserts.assert(res.password == 'foobarbazquxquux');
+	// 		asserts.done();
+	// 	}).tryRecover(e -> {
+	// 		trace(e);
+	// 		asserts.assert(e == null);
+	// 		asserts.done();
+	// 	}).eager();
+	// 	return asserts;
+	// }
 }

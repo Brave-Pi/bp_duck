@@ -9,6 +9,7 @@ typedef UserUpsertResult = {
 	> BasicResult,
 	id:String,
 }
+typedef UserResolutionResult = UserUpsertResult;
 
 typedef UserDeleteResult = BasicResult;
 
