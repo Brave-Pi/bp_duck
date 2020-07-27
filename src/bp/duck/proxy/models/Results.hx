@@ -42,3 +42,8 @@ typedef UserInfoResult = {
 	?fromWhitelist:Array<String>,
 	disabledScopes:Array<String>
 };
+
+typedef PasswordResetResult = {
+	>BasicResult,
+	password:String,
+}

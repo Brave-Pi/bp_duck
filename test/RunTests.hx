@@ -66,20 +66,35 @@ class Test {
 
 			asserts.done();
 		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(e == null);
 			asserts.done();
 		}).eager();
 
 		return asserts;
 	}
 
+	public function user_reset_quota() {
+		wildDuckProxy.users().byId(userId).resetQuota().next(_ -> {
+			asserts.assert(true);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(e == null);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
 	public function user_info() {
 		wildDuckProxy.users().byId(userId).info().next(info -> {
 			asserts.assert(info != null);
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
+			asserts.assert(e == null);
 			asserts.done();
 		}).eager();
 		return asserts;
 	}
+
 }

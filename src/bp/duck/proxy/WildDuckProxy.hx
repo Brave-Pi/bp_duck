@@ -17,24 +17,27 @@ interface WildDuckProxy extends QuotaResetProxy {
 
 interface UserProxy {
 	@:post('/')
-	@:params(request = body)
-	function create(request:UserUpsertRequest):UserUpsertResult;
+	
+	function create(body:UserUpsertRequest):UserUpsertResult;
 
 	@:sub('/$id')
 	function byId(id:String):OwnUserProxy;
 
 	@:get('/')
-	@:params(request = body)
-	function select(request:UserSelectRequest):UserSelectResult;
+	function select(body:UserSelectRequest):UserSelectResult;
 }
 
 interface OwnUserProxy extends QuotaResetProxy {
     @:get('/')
     function info():UserInfoResult;
+
 	@:delete('/')
-	function delete(body:UserDeleteRequest):UserDeleteResult;
+    function delete(body:UserDeleteRequest):UserDeleteResult;
+    
 	@:put('/logout')
-	function logOut(body:UserLogoutRequest):BasicResult;
-	// @:post('/quota/reset')
-	// var resetQuota:Noise;
+    function logOut(body:UserLogoutRequest):BasicResult;
+
+    @:post('/password/reset') 
+    function resetPass(body:PasswordResetRequest):PasswordResetResult;
+
 }

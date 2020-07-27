@@ -64,3 +64,9 @@ typedef UserSelectRequest = {
 typedef UserLogoutRequest = {
     reason:String
 }
+
+typedef PasswordResetRequest = {
+	?validAfter:String,
+	?sess:String,
+	?ip:String,
+}
