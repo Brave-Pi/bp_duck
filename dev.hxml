@@ -1,0 +1,4 @@
+--library bp_grpc
+--library tink_web
+-cp src
+-D analyzer-optimized
