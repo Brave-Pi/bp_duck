@@ -4,7 +4,7 @@ import bp.duck.proxy.models.Results;
 // 1.) Translate WildDuck API into tink_web proxy interface
 interface WildDuckProxy {
     @:sub('/users')
-    var users(get, never):UserProxy;
+    var users:UserProxy;
 }
 
 interface UserProxy {
