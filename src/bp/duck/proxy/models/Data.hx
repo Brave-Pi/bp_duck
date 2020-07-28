@@ -5,7 +5,24 @@ typedef Auditable = {
 	?sess:String
 }
 
-
+typedef AddressBase = {
+    address:String,
+	?name:Dynamic,
+	?tags:Array<String>,
+	?main:Bool,
+	?allowWildcard:Bool
+}
+typedef ForwardedAddressBase = {
+    >AddressBase,
+    ?targets:Array<String>,
+}
+typedef AutoReply = {
+    ?status:Bool,
+    ?name:String,
+    ?subject:String,
+    ?text:String,
+    ?html:String
+};
 typedef UserBase = {
 	?id:String,
 	?username:String,
@@ -29,3 +46,9 @@ typedef QuotaBase = {
 	allowed:Int,
 	used:Int
 };
+
+typedef AddressProfileBase = {
+    ?address:String,
+	?main:Bool,
+	?name:String
+}

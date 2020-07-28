@@ -28,34 +28,33 @@ class RunTests {
 	static function main() {
 		ANSI.stripIfUnavailable = false;
 		var reporter = new BasicReporter(new AnsiFormatter());
-		Runner.run(TestBatch.make([new Test(),]), reporter).handle(Runner.exit);
+		Runner.run(TestBatch.make([new UserTests(), new AddressTests()]), reporter).handle(Runner.exit);
 	}
 }
 
-@:asserts
-class Test {
+class ProxyTestBase {
 	public function new() {}
 
-	var container:LocalContainer;
 	var wildDuckProxy:bp.duck.Proxy;
-
-	// var duckSvcProxy:bp.duck
 
 	@:setup
 	public function setup() {
-		// var container = new LocalContainer();
-		// var router = new Router<bp.DuckSvc>(new bp.DuckSvc());
-		// container.run(req -> router.route(Context.ofRequest(req)).recover(OutgoingResponse.reportError));
 		var client = new NodeClient();
 		wildDuckProxy = new bp.duck.Proxy(client, new RemoteEndpoint(new Host('localhost', 8080)));
 		trace('setup');
 		return Noise;
 	}
+}
 
-	var userId:String;
+class State {
+	public static var userId:String;
+	public static var random = Std.random(100000);
+}
 
+@:asserts
+class UserTests extends ProxyTestBase {
 	public function create_user() {
-		var random = Std.random(100000);
+		var random = State.random;
 		var request = {
 			username: 'test$random',
 			password: "someSecret",
@@ -65,7 +64,7 @@ class Test {
 		wildDuckProxy.users().create(request).next(res -> {
 			asserts.assert(res.success);
 
-			userId = res.id;
+			State.userId = res.id;
 
 			asserts.done();
 		}).tryRecover(e -> {
@@ -78,7 +77,7 @@ class Test {
 	}
 
 	public function user_reset_quota() {
-		wildDuckProxy.users().byId(userId).resetQuota().next(res -> {
+		wildDuckProxy.users().get(State.userId).resetQuota().next(res -> {
 			asserts.assert(res.success);
 			asserts.assert(res.storageUsed == 0);
 			asserts.done();
@@ -91,7 +90,7 @@ class Test {
 	}
 
 	public function user_info() {
-		wildDuckProxy.users().byId(userId).info().next(res -> {
+		wildDuckProxy.users().get(State.userId).info().next(res -> {
 			asserts.assert(res.success);
 			asserts.done();
 		}).tryRecover(e -> {
@@ -105,7 +104,7 @@ class Test {
 	var newPass:String;
 
 	public function reset_pass() {
-		wildDuckProxy.users().byId(userId).resetPass({
+		wildDuckProxy.users().get(State.userId).resetPass({
 			sess: "tink_unittest session",
 			ip: "127.0.0.1"
 		}).next(res -> {
@@ -121,9 +120,9 @@ class Test {
 		}).eager();
 		return asserts;
 	}
-	
+
 	public function update_pass() {
-		wildDuckProxy.users().byId(userId).update({
+		wildDuckProxy.users().get(State.userId).update({
 			existingPassword: newPass,
 			password: 'foobarbazquxquux'
 		}).next(res -> {
@@ -131,27 +130,113 @@ class Test {
 			// asserts.assert(res.success);
 
 			asserts.assert(res != null);
-			if(res.error != null) trace(res.error);
+			if (res.error != null)
+				trace(res.error);
 			asserts.done();
-		})
-		.tryRecover(e -> {
+		}).tryRecover(e -> {
 			trace(e);
 			asserts.assert(e == null);
 			asserts.done();
 		}).eager();
 		return asserts;
 	}
-	// heheh... ofc password is always null ;) should never know plaintext passes
-	// public function check_pass() {
-	// 	wildDuckProxy.users().byId(userId).info().next(res -> {
-	// 		asserts.assert(res.success);
-	// 		asserts.assert(res.password == 'foobarbazquxquux');
-	// 		asserts.done();
-	// 	}).tryRecover(e -> {
-	// 		trace(e);
-	// 		asserts.assert(e == null);
-	// 		asserts.done();
-	// 	}).eager();
-	// 	return asserts;
-	// }
+
+	public function access_token_fail() {
+		wildDuckProxy.users('some-made-up-token').get(State.userId).info().next(_ -> {
+			asserts.assert('should have failed' == null);
+			asserts.done();
+		}).tryRecover(e -> {
+			asserts.assert(e.code == Forbidden);
+			asserts.done();
+		});
+		return asserts;
+	}
+}
+
+@:asserts
+class AddressTests extends ProxyTestBase {
+	var addressId:String;
+	var addresses(get, never):tink.web.proxy.Remote<bp.duck.proxy.WildDuckProxy.UserAddressProxy>;
+
+	inline function get_addresses()
+		return this.wildDuckProxy.users().get(State.userId).addresses();
+
+	public function create_address() {
+		addresses.create({
+			address: 'some-made-up-address-i-guess-${State.random}@brave-pi.io',
+			name: 'tink_address',
+		}).next(res -> {
+			asserts.assert(res.success);
+			addressId = res.id;
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	public function address_list() {
+		addresses.list().next(res -> {
+			asserts.assert(res.success);
+			asserts.assert(res.results.length == 2);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+	function checkAddressName(asserts:AssertionBuffer, ?name:String = "tink_address")
+		return addresses.get(addressId).next(res -> {
+			
+			asserts.assert(res.success);
+			asserts.assert(res.name == name);
+			asserts.done();
+		})
+		.tryRecover(e -> {
+			trace(e);
+			asserts.assert(false);
+			asserts.done();
+		})
+		.eager();
+	public function address_info() {
+		checkAddressName(asserts);
+		return asserts;
+	}
+
+	public function update_address() {
+		addresses.update(addressId, {
+			name: "bp_address"
+		}).next(res -> {
+			asserts.assert(res.success);
+			asserts.done();
+		})
+		.tryRecover(e -> {
+			trace(e);
+			asserts.assert(false);
+			asserts.done();
+		})
+		.eager();
+		return asserts;
+	}
+	
+	public function verify_update() {
+		checkAddressName(asserts, 'bp_address');
+		return asserts;
+	}
+
+	public function delete_address() {
+		addresses.delete(addressId).next(res -> {
+			asserts.assert(res.success);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false);
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
 }

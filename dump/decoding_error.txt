@@ -1,0 +1,16 @@
+{
+	expr: ENew({
+		name: TestSuite
+		pack: [tink, unit]
+		params: [TPType(null <- expected enum value)]
+		sub: TestSuiteBuilder
+	}, [{
+		expr: EConst(CIdent(r))
+		pos: #pos
+	}, {
+		expr: EConst(CIdent(null))
+		pos: #pos
+	}])
+	pos: #pos
+}
+line 5: expected enum value

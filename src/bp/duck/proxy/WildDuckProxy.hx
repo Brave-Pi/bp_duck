@@ -6,18 +6,61 @@ import tink.CoreApi;
 
 // 1.) Translate WildDuck API into tink_web proxy interface
 interface QuotaResetProxy {
-	@:post('/quota/reset')
-	var resetQuota:{
+    @:post('/quota/reset')
+    @:params(accessToken = header['X-Access-Token'])
+	function resetQuota(?accessToken:String):{
         >BasicResult,
         ?storageUsed:Int
-    }
+    };
 }
 
 interface WildDuckProxy extends QuotaResetProxy {
-	@:sub('/users')
-	var users:UserProxy;
+
+
+    @:sub('/users')
+    @:params(accessToken = header['X-Access-Token'])
+    function users(?accessToken:String):UserProxy;
+    
+    @:sub('/addresses')
+    @:params(accessToken = header['X-Access-Token'])
+    function addresses(?accessToken:String):AddressProxy;
+
+    
+
 }
 
+interface AddressProxy {
+  
+
+    @:get('/resolve/$id')
+    function resolve(id:String, query:AddressResolutionRequest):AddressResolutionResult;
+
+    @:get('/')
+    function list():RegisteredAddressListResult;
+
+    @:put('/renameDomain')
+    function renameDomain(body:RenameDomainRequest):RenameDomainResult;
+
+    @:sub('/forwarded')
+    function forwarded():ForwardedAddressProxy;
+    
+  
+}
+
+interface ForwardedAddressProxy {
+
+    @:post('/')
+    function create(body:ForwardedAddressCreateResult):ForwardedAddressCreateResult;
+
+    @:delete('/$id')
+    function delete(id:String):ForwardedAddressDeleteResult;
+
+    @:get('/$address')
+    function get(address:String):ForwardedAddressInfoResult;
+
+    @:put('/$address')
+    function update(address:String, body:ForwardedAddressUpdateRequest):ForwardedAddressUpdateResult;
+}
 interface UserProxy {
 	@:post('/')
     function create(body:UserUpsertRequest):UserUpsertResult;
@@ -26,7 +69,7 @@ interface UserProxy {
     function resolve(username:String):UserResolutionResult;
     
 	@:sub('/$id')
-	function byId(id:String):OwnUserProxy;
+	function get(id:String):OwnUserProxy;
 
 	@:get('/')
 	function select(body:UserSelectRequest):UserSelectResult;
@@ -47,5 +90,27 @@ interface OwnUserProxy extends QuotaResetProxy {
 
     @:post('/password/reset') 
     function resetPass(body:PasswordResetRequest):PasswordResetResult;
+
+    @:sub('/addresses')
+    function addresses():UserAddressProxy;
+}
+
+interface UserAddressProxy {
+    @:post('/')
+    function create(body:UserAddressCreateRequest):UserAddressCreateResult;
+    
+
+    @:delete('/$id')
+    function delete(id:String):UserAddressDeleteResult;
+
+
+    @:get('/')
+    function list():UserAddressListResult;
+
+    @:get('/$id')
+    function get(id:String):AddressInfoResult;
+
+    @:put('/$id')
+    function update(id:String, body:AddressUpdateRequest):AddressUpdateResult;
 
 }

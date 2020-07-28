@@ -1,29 +1,43 @@
 package bp.duck.proxy.models;
 
+// users
+typedef Audited = {
+	?id:String,
+	?created:String
+}
+
 typedef BasicResult = {
 	?success:Bool,
 	?error:String
 }
 
-typedef UserUpsertResult = {
+typedef Identify = {
 	> BasicResult,
-	id:String,
-}
-typedef UserResolutionResult = UserUpsertResult;
+	?id:String
+};
 
+typedef UserUpsertResult = {
+	> Identify,
+}
+
+typedef UserResolutionResult = UserUpsertResult;
 typedef UserDeleteResult = BasicResult;
 
 typedef PaginatedResult = {
-	total:Int,
-	page:Int,
-	previousCursor:String,
-	nextCursor:String,
+	> BasicResult,
+	?total:Int,
+	?page:Int,
+	?previousCursor:String,
+	?nextCursor:String,
 };
 
+typedef WithResults<T> = {
+	results:Array<T>
+}
+
 typedef UserSelectResult = {
-	> BasicResult,
 	> PaginatedResult,
-	results:Array<{
+	> WithResults<{
 		> UserBase, quota:QuotaBase
 	}>,
 }
@@ -34,7 +48,7 @@ typedef QuotaGroup = {
 }
 
 typedef UserInfoResult = {
-	>BasicResult,
+	> BasicResult,
 	> UserBase,
 	keyInfo:Dynamic,
 	limits:{
@@ -46,6 +60,57 @@ typedef UserInfoResult = {
 };
 
 typedef PasswordResetResult = {
-	>BasicResult,
+	> BasicResult,
 	password:String,
 }
+
+// addresses
+typedef UserAddressCreateResult = Identify;
+typedef ForwardedAddressCreateResult = Identify;
+typedef ForwardedAddressDeleteResult = BasicResult;
+typedef UserAddressDeleteResult = BasicResult;
+
+typedef AddressResolutionResult = {
+	> ForwardedAddressBase,
+	> BasicResult,
+	> Audited,
+	?limits:{
+		forwards:QuotaGroup
+	},
+	?autoReply:AutoReply,
+}
+
+typedef UserAddressListResult = {
+	> BasicResult,
+	> WithResults<{
+		> AddressBase, > Audited,
+	}>,
+}
+
+typedef RegisteredAddressListResult = {
+	> PaginatedResult,
+	> WithResults<{
+		> AddressBase, > Audited,
+	}>,
+}
+
+typedef RenameDomainResult = BasicResult;
+
+typedef AddressInfoResult = {
+	> BasicResult,
+	> Audited,
+	> AddressProfileBase,
+}
+
+typedef ForwardedAddressInfoResult = {
+	> AddressBase,
+	> Audited,
+	limits:{
+		forwards:QuotaGroup
+	},
+	?autoreply:AutoReply,
+	?forwardedDisabled:Bool,
+}
+
+typedef AddressUpdateResult = BasicResult;
+typedef ForwardedAddressUpdateResult = BasicResult;
