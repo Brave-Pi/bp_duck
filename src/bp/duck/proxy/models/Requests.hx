@@ -1,6 +1,9 @@
 package bp.duck.proxy.models;
 
 /**
+ * Common
+ */
+/**
  * Users
  */
 typedef UserUpsertRequest = {
@@ -48,6 +51,7 @@ typedef UserDeleteRequest = {
 };
 
 typedef PaginatedRequest = {
+	?query:String,
 	?limit:Int,
 	?page:Int,
 	?next:Int,
@@ -56,7 +60,6 @@ typedef PaginatedRequest = {
 
 typedef UserSelectRequest = {
 	> PaginatedRequest,
-	querquery:String,
 	tags:String,
 	requiredTags:String,
 	metaData:Bool
@@ -104,7 +107,6 @@ typedef AddressResolutionRequest = {
 
 typedef RegisteredAddressListRequest = {
 	> PaginatedRequest,
-	?query:String,
 	?tags:String,
 	?requiredTags:String
 }
@@ -168,7 +170,6 @@ typedef MessageSelectRequest = {
 	> PaginatedRequest,
 	?mailbox:String,
 	?thread:String,
-	?query:String,
 	?datestart:Date,
 	?datend:Date,
 	?from:String,
@@ -212,13 +213,10 @@ typedef DraftCreateRequest = {
 /**
  * Storage
  */
-typedef FileListRequest = {
-	>PaginatedRequest,
-	?query:String
-}
+typedef FileListRequest = PaginatedRequest;
 
 typedef FileUploadRequest = {
-	>Auditable,
+	> Auditable,
 	filename:String,
 	contentType:String
 }
@@ -226,10 +224,117 @@ typedef FileUploadRequest = {
 /**
  * Submission
  */
+typedef SubmitMessageRequest = {
+	> DraftCreateRequest,
+	?uploadOnly:Bool,
+	?isDraft:Bool,
+	?sendTime:Date
+}
 
- typedef SubmitMessageRequest = {
-	 >DraftCreateRequest,
-	 ?uploadOnly:Bool,
-	 ?isDraft:Bool,
-	 ?sendTime:Date
- }
+/**
+ * Two Factor Auth
+ */
+typedef TwoFactorAuthFADeleteRequest = Auditable;
+
+typedef TwoFactorAuthFADisableRequest = Auditable;
+typedef CustomTwoFactorAuthDisableRequest = Auditable;
+
+typedef TwoFactorAuthEnableRequest = {
+	> Auditable,
+	token:String
+}
+
+typedef CustomTwoFactorAuthEnableRequest = {
+	> Auditable,
+}
+
+typedef TwoFactorAuthGenSeedRequest = {
+	> Auditable,
+	?label:String
+}
+
+typedef TwoFactorAuthValidateRequest = {
+	> Auditable,
+	token:String,
+}
+
+/**
+ * Application Specific Passwords (ASPs)
+ */
+typedef ASPCreateRequest = {
+	> ASPBase,
+	?generateMobileconfig:Bool,
+	?address:String,
+	?ttl:Int,
+	?sess:String,
+	?ip:String
+}
+
+typedef ASPListRequest = {
+	?showAll:Bool
+}
+
+/**
+ * Archive
+ */
+typedef ArchiveListRequest = PaginatedRequest;
+
+typedef ArchiveRestoreRequest = {
+	?mailbox:String
+}
+
+typedef ArchiveBulkRestoreRequest = {
+	start:Date,
+	end:Date
+}
+
+/**
+ * Audit
+ */
+typedef AuditCreateRequest = AuditBase<Date>;
+
+/**
+ * Authentication
+ */
+typedef AuthenticateRequest = {
+	> Auditable,
+	username:String,
+	password:String,
+	?protocol:String,
+	?scope:String,
+	?token:String,
+}
+
+typedef AuthLogListRequest = {
+	> PaginatedRequest,
+	?filterIp:String,
+	?action:String
+}
+
+/**
+ * Autoreplies
+ */
+typedef AutoReplyUpdateRequest = AutoReplyBase<Date>;
+
+/**
+ * DKIM
+ *
+ */
+ typedef DkimCreateRequest = PrivateDkimBase;
+
+ typedef DkimListRequest = PaginatedRequest;
+
+/**
+ * Domain Aliases
+ * **/
+ typedef DomainAliasCreateRequest = DomainAlias;
+ typedef DomainAliasListRequest = PaginatedRequest;
+
+
+ /**
+  * Filters
+  */
+
+  typedef FilterCreateRequest = FilterInfo;
+
+  typedef FilterUpdateRequest = FilterInfo;

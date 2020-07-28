@@ -1,5 +1,6 @@
 package bp.duck.proxy.models;
 
+
 typedef Auditable = {
 	?sess:String,
 	?ip:String
@@ -10,7 +11,7 @@ typedef HasMeta = {
 }
 
 typedef AddressBase = {
-	address:String,
+	?address:String,
 	?name:Dynamic,
 	?tags:Array<String>,
 	?main:Bool,
@@ -50,8 +51,8 @@ typedef UserBase = {
 };
 
 typedef QuotaBase = {
-	allowed:Int,
-	used:Int
+	?allowed:Int,
+	?used:Int
 };
 
 typedef AddressProfileBase = {
@@ -82,13 +83,13 @@ typedef Mailbox = {
 }
 
 typedef Party = {
-	from:String,
-	address:String
+	?from:String,
+	?address:String
 }
 
 typedef ContentType = {
-	value:String,
-	params:DynamicAccess<String>
+	?value:String,
+	?params:DynamicAccess<String>
 }
 
 typedef MessageBase = {
@@ -161,4 +162,76 @@ typedef MessageInfo<AttachmentType, FileType> = {
 		?attachments:Bool
 	},
 	?files:Array<FileType>
+}
+
+typedef ASPBase = {
+	?description:String,
+	?scope:Array<String>
+}
+
+typedef AuditBase<DateType> = {
+	?start:DateType,
+	?end:DateType,
+	?expires:DateType
+}
+
+typedef AutoReplyBase<DateType> = {
+	?status:Bool,
+	?name:String,
+	?subject:String,
+	?html:String,
+	?text:String,
+	?start:DateType,
+	?end:DateType
+}
+
+typedef DkimBase = {
+	?domain:String,
+	?selector:String,
+	?description:String
+}
+typedef PrivateDkimBase = {
+	>DkimBase,
+	?privateKey:String
+}
+
+typedef PublicDkimBase = {
+	>DkimBase,
+	?fingerprint:String,
+	?publicKey:String,
+}
+
+typedef FilterBase<QueryType,ActionType> = {
+	?name:String,
+	?query:QueryType,
+	?action:ActionType,
+	?disabled:Bool
+}
+
+typedef QueryInfo = {
+	?from:String,
+	?to:String,
+	?subject:String,
+	?listId:String,
+	?text:String,
+	?ha:Bool,
+	?size:Int
+}
+
+typedef ActionInfo = {
+	?seen:Bool,
+	?flag:Bool,
+	?delete:Bool,
+	?spam:Bool,
+	?mailbox:Bool,
+	?targets:Bool,
+}
+
+typedef FilterInfo = FilterBase<QueryInfo,ActionInfo>;
+
+typedef Filter = FilterBase<Array<String>,Array<String>>;
+
+typedef DomainAlias = {
+	?alias:String,
+	?domain:String
 }

@@ -1,10 +1,13 @@
 package bp.duck.proxy.models;
 
+#if macro
+import tink.macro.BuildCache;
+using tink.MacroApi;
+#end
 /**
- * Users
+ * Common
  */
 typedef Audited = {
-	?id:String,
 	?created:String
 }
 
@@ -12,6 +15,7 @@ typedef BasicResult = {
 	?success:Bool,
 	?error:String
 }
+
 
 typedef DeleteManyResult = {
 	> BasicResult,
@@ -23,15 +27,16 @@ typedef Identify = {
 	?id:String
 };
 
-typedef UserUpsertResult = {
-	> Identify,
-}
+/**
+ * Users
+ */
+typedef UserUpsertResult = Identify;
 
 typedef UserResolutionResult = UserUpsertResult;
 typedef UserDeleteResult = BasicResult;
 
 typedef WithResults<T> = {
-	>BasicResult,
+	> BasicResult,
 	?results:Array<T>
 };
 
@@ -42,8 +47,6 @@ typedef PaginatedResult<T> = {
 	?previousCursor:String,
 	?nextCursor:String,
 };
-
-
 
 typedef UserSelectResult = {
 	> PaginatedResult<{
@@ -84,7 +87,7 @@ typedef UserAddressDeleteResult = BasicResult;
 
 typedef AddressResolutionResult = {
 	> ForwardedAddressBase,
-	> BasicResult,
+	> Identify,
 	> Audited,
 	?limits:{
 		forwards:QuotaGroup
@@ -95,26 +98,27 @@ typedef AddressResolutionResult = {
 typedef UserAddressListResult = {
 	> BasicResult,
 	> WithResults<{
-		> AddressBase, > Audited,
+		> AddressBase, > Audited, > Identify,
 	}>,
 }
 
 typedef RegisteredAddressListResult = {
 	> PaginatedResult<{
-		> AddressBase, > Audited,
+		> AddressBase, > Audited, > Identify,
 	}>,
 }
 
 typedef RenameDomainResult = BasicResult;
 
 typedef AddressInfoResult = {
-	> BasicResult,
+	> Identify,
 	> Audited,
 	> AddressProfileBase,
 }
 
 typedef ForwardedAddressInfoResult = {
 	> AddressBase,
+	> Identify,
 	> Audited,
 	limits:{
 		forwards:QuotaGroup
@@ -226,3 +230,179 @@ typedef FileListResult = {
 typedef FileUploadResult = {
 	> Identify,
 }
+
+/**
+ * Two Factor Auth
+ */
+typedef TwoFactorAuthDeleteResult = BasicResult;
+
+typedef TwoFactorAuthDisableResult = BasicResult;
+typedef CustomTwoFactorAuthDisableResult = BasicResult;
+typedef TwoFactorAuthEnableResult = BasicResult;
+typedef CustomTwoFactorAuthEnableResult = BasicResult;
+
+typedef TwoFactorAuthGenSeedResult = {
+	> BasicResult,
+	?seed:String,
+	?qrcode:String
+}
+
+typedef TwoFactorAuthValidateResult = BasicResult;
+
+/**
+ * Application Specific Passwords (ASPs)
+ */
+typedef ASPBaseResult = {
+	> ASPBase,
+	?lastUse:{
+		?time:String,
+		?event:String
+	}
+}
+
+typedef ASPCreateResult = {
+	> Identify,
+	?password:String,
+	?mobileconfig:String,
+}
+
+typedef ASPDeleteResult = BasicResult;
+
+typedef ASPListResult = {
+	> BasicResult,
+	> WithResults<ASPBaseResult>,
+}
+
+typedef ASPInfoResult = {
+	> Identify,
+	> Audited,
+	> ASPBaseResult,
+}
+
+/**
+ * Archive
+ */
+typedef ArchiveListResult = MessageSelectResult;
+
+typedef ArchiveRestoreResult = {
+	> Identify,
+	mailbox:String
+}
+
+typedef ArchiveBulkRestoreResult = BasicResult;
+
+/**
+ * Audit
+ */
+typedef AuditCreateResult = Identify;
+
+typedef AuditExportResult = RealSource;
+
+typedef AuditInfoResult = {
+	> BasicResult,
+	> AuditBase<String>,
+	user:String,
+}
+
+/**
+ * Authentication
+ */
+typedef AuthenticateResult = {
+	> Identify,
+	username:String,
+	scope:String,
+	require2fa:Array<String>,
+	requirePasswordChange:Bool,
+	?token:String
+}
+
+typedef AuthInvalidateResult = BasicResult;
+
+typedef AuthLog = {
+	> Auditable,
+	id:String,
+	action:String,
+	result:String,
+}
+
+typedef AuthLogListResult = PaginatedResult<AuthLog>;
+typedef AuthLogResult = {
+	>BasicResult,
+	> AuthLog,
+};
+
+/**
+ * Autoreplies
+ */
+typedef AutoReplyDeleteResult = BasicResult;
+
+typedef AutoReplyInfoResult = {
+	>BasicResult,
+	> AutoReplyBase<String>,
+}
+typedef AutoReplyUpdateResult = BasicResult;
+
+/**
+ * DKIM
+ */
+typedef PublicDkimInfo = {
+	> PublicDkimBase,
+	dnsTxt:{
+		name:String, value:String
+	}
+}
+
+typedef DkimCreateResult = {
+	> Identify,
+	> PublicDkimBase,
+}
+
+typedef DkimDeleteResult = BasicResult;
+
+typedef DkimListResult = PaginatedResult<{
+	> Audited, > PublicDkimBase, id:String,
+}>;
+
+typedef DkimInfoResult = {
+	> Identify,
+	> PublicDkimInfo,
+}
+
+typedef DkimResolutionResult = {
+	> Identify,
+}
+/**
+ * Domain Aliases
+ * **/
+
+typedef DomainAliasCreateResult = Identify;
+
+typedef DomainAliasDeleteResult = BasicResult;
+
+typedef DomainAliasListResult = PaginatedResult<{
+	>Identify,
+	>DomainAlias,
+}>;
+
+typedef DomainAliasInfoResult = {
+	>Identify,
+	> DomainAlias,
+}
+
+typedef DomainAliasResolutionResult = Identify;
+ /**
+  * Filters
+  */
+
+  typedef FilterCreateResult = Identify;
+
+  typedef FilterDeleteResult = BasicResult;
+
+  typedef FilterListResult = PaginatedResult<Filter>;
+
+  typedef FilterInfoResult = {
+	  >Identify,
+	  > Filter,
+  }
+
+  typedef FilterUpdateResult = Identify;
