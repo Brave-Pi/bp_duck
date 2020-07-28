@@ -29,7 +29,12 @@ class RunTests {
 	static function main() {
 		ANSI.stripIfUnavailable = false;
 		var reporter = new BasicReporter(new AnsiFormatter());
-		Runner.run(TestBatch.make([new UserTests(), new AddressTests(), new MailboxTests()]), reporter).handle(Runner.exit);
+		Runner.run(TestBatch.make([
+			new UserTests(),
+			new AddressTests(),
+			new MailboxTestsPart1(),
+			// new MailboxTestsPart2()
+		]), reporter).handle(Runner.exit);
 	}
 }
 
@@ -38,6 +43,7 @@ class ProxyTestBase {
 
 	var wildDuckProxy:bp.duck.Proxy;
 	var client:NodeClient;
+
 	@:setup
 	public function setup() {
 		client = new NodeClient();
@@ -53,6 +59,7 @@ class State {
 
 @:asserts
 class UserTests extends ProxyTestBase {
+	@:describe("Should create a user")
 	public function create_user() {
 		var random = State.random;
 		var request = {
@@ -61,7 +68,7 @@ class UserTests extends ProxyTestBase {
 			address: 'test$random@brave-pi.io',
 		};
 		wildDuckProxy.users().create(request).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			State.userId = res.id;
 
 			asserts.done();
@@ -74,10 +81,11 @@ class UserTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to reset a user's quota")
 	public function user_reset_quota() {
 		wildDuckProxy.users().get(State.userId).resetQuota().next(res -> {
-			asserts.assert(res.success);
-			asserts.assert(res.storageUsed == 0);
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.storageUsed == 0, "New user should have a quota of 0");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -87,9 +95,10 @@ class UserTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should not receive an HTTP Error")
 	public function user_info() {
 		wildDuckProxy.users().get(State.userId).info().next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -101,14 +110,15 @@ class UserTests extends ProxyTestBase {
 
 	var newPass:String;
 
+	@:describe("Should be able to get a new, auto-generated password") 
 	public function reset_pass() {
 		wildDuckProxy.users().get(State.userId).resetPass({
 			sess: "tink_unittest session",
 			ip: "127.0.0.1"
 		}).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 
-			trace(newPass = res.password);
+			asserts.assert((newPass = res.password) != null);
 
 			asserts.done();
 		}).tryRecover(e -> {
@@ -119,13 +129,14 @@ class UserTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to update the password") 
 	public function update_pass() {
 		wildDuckProxy.users().get(State.userId).update({
 			// existingPassword: newPass,
 			password: 'foobarbazquxquux'
 		}).next(res -> {
 			// TODO: investigate password verification failure
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			if (res.error != null)
 				trace(res.error);
 			asserts.done();
@@ -137,12 +148,13 @@ class UserTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should fail with an invalid access token")
 	public function access_token_fail() {
 		wildDuckProxy.users('some-made-up-token').get(State.userId).info().next(_ -> {
 			asserts.assert('should have failed' == null);
 			asserts.done();
 		}).tryRecover(e -> {
-			asserts.assert(e.code == Forbidden);
+			asserts.assert(e.code == Forbidden, "Should get a 403 FORBIDDEN response");
 			asserts.done();
 		});
 		return asserts;
@@ -157,12 +169,14 @@ class AddressTests extends ProxyTestBase {
 	inline function get_addresses()
 		return this.wildDuckProxy.users().get(State.userId).addresses();
 
+	@:describe("Should be able to create an address and get an ID")
 	public function create_address() {
 		addresses.create({
 			address: 'some-made-up-address-i-guess-${State.random}@brave-pi.io',
 			name: 'tink_address',
 		}).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.id != null);
 			addressId = res.id;
 			asserts.done();
 		}).tryRecover(e -> {
@@ -173,10 +187,11 @@ class AddressTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to list the addresses for the user")
 	public function address_list() {
 		addresses.list().next(res -> {
-			asserts.assert(res.success);
-			asserts.assert(res.results.length == 2);
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.results.length == 2, "there should be 2 addresses, because one was added after the user was created.");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -188,8 +203,8 @@ class AddressTests extends ProxyTestBase {
 
 	function checkAddressName(asserts:AssertionBuffer, ?name:String = "tink_address")
 		return addresses.get(addressId).next(res -> {
-			asserts.assert(res.success);
-			asserts.assert(res.name == name);
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.name == name, 'Name for Address #$addressId matches the name we set');
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -197,16 +212,18 @@ class AddressTests extends ProxyTestBase {
 			asserts.done();
 		}).eager();
 
+	@:describe("Should be able to get the info for an address")
 	public function address_info() {
 		checkAddressName(asserts);
 		return asserts;
 	}
 
+	@:describe("Should be able to update the address")
 	public function update_address() {
 		addresses.update(addressId, {
 			name: "bp_address"
 		}).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -216,14 +233,16 @@ class AddressTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should match the updated name")
 	public function verify_update() {
 		checkAddressName(asserts, 'bp_address');
 		return asserts;
 	}
 
+	@:describe("Should be able to delete the address")
 	public function delete_address() {
 		addresses.delete(addressId).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -235,19 +254,21 @@ class AddressTests extends ProxyTestBase {
 }
 
 @:asserts
-class MailboxTests extends ProxyTestBase {
+class MailboxTestsPart1 extends ProxyTestBase {
 	var mailboxes(get, never):tink.web.proxy.Remote<UserMailboxProxy>;
 	var mailboxId:String;
 
 	inline function get_mailboxes()
 		return this.wildDuckProxy.users().get(State.userId).mailboxes();
 
+
+	@:describe("Should be able to create a mailbox")
 	public function create_mailbox() {
 		mailboxes.create({
 			path: 'Some New Mailbox'
 		}).next(res -> {
-			asserts.assert(res.success);
-			mailboxId = res.id;
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert((mailboxId = res.id) != null, "should have gotten a mailbox ID back");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -257,19 +278,20 @@ class MailboxTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to get a list of mailboxes")
 	public function mailbox_select() {
 		mailboxes.select({
 			counters: true,
 			sizes: true,
 			showHidden: true
 		}).next(res -> {
-			asserts.assert(res.success);
-			asserts.assert(res.results.length == 6);
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.results.length == 6, "There should be 6; 5 default mailboxes in addition to the one we created");
 			var boxNames = ['INBOX', 'Drafts', 'Junk', 'Sent Mail', 'Some New Mailbox', 'Trash'];
 			res.results.iter(mailbox -> {
 				var foundBox = boxNames.find(boxName -> boxName == mailbox.name);
 				if (foundBox != null)
-					asserts.assert(mailbox.name == foundBox);
+					asserts.assert(mailbox.name == foundBox, 'Found expected mailbox for ${mailbox.name}');
 				else
 					asserts.assert(false, 'Could not find box ${mailbox.name}');
 			});
@@ -282,11 +304,13 @@ class MailboxTests extends ProxyTestBase {
 		return asserts;
 	}
 
+
+	@:describe("Should be able to update a mailbox")
 	public function mailbox_update() {
 		mailboxes.get(this.mailboxId).update({
 			path: 'New Path'
 		}).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -296,10 +320,11 @@ class MailboxTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to get the info about a mailbox")
 	public function mailbox_info() {
 		mailboxes.get(this.mailboxId).info().next(res -> {
-			asserts.assert(res.success);
-			asserts.assert(res.path == "New Path");
+			asserts.assert(res.success, "Should have had a successful response");
+			asserts.assert(res.path == "New Path", "Should match the updated mailbox path");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
@@ -309,9 +334,10 @@ class MailboxTests extends ProxyTestBase {
 		return asserts;
 	}
 
+	@:describe("Should be able to delete a mailbox")
 	public function delete_mailbox() {
 		mailboxes.get(this.mailboxId).delete().next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
