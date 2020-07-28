@@ -1,6 +1,8 @@
 package bp.duck.proxy.models;
 
-// users
+/**
+ * Users
+ */
 typedef Audited = {
 	?id:String,
 	?created:String
@@ -64,8 +66,11 @@ typedef PasswordResetResult = {
 	password:String,
 }
 
-// addresses
+/**
+ * Addresses
+ */
 typedef UserAddressCreateResult = Identify;
+
 typedef ForwardedAddressCreateResult = Identify;
 typedef ForwardedAddressDeleteResult = BasicResult;
 typedef UserAddressDeleteResult = BasicResult;
@@ -114,3 +119,22 @@ typedef ForwardedAddressInfoResult = {
 
 typedef AddressUpdateResult = BasicResult;
 typedef ForwardedAddressUpdateResult = BasicResult;
+
+/**
+ * Mailboxes
+ */
+typedef MailboxCreateResult = Identify;
+typedef MailboxDeleteResult = BasicResult;
+
+
+typedef MailboxSelectResult = {
+	> BasicResult,
+	> WithResults<Mailbox>,
+}
+
+typedef MailboxInfoResult = {
+	>Identify,
+	>Mailbox,
+}
+
+typedef MailboxUpdateResult = BasicResult;

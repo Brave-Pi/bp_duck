@@ -1,5 +1,7 @@
 package bp.duck.proxy.models;
-// users
+/**
+ * Users
+ */
 typedef UserUpsertRequest = {
 	>UserBase, >Auditable,
 	?username:String,
@@ -79,7 +81,9 @@ typedef UserUpdateRequest = {
 	?disable2fa:Bool,
 }
 
-// addresses
+/**
+ * Addresses
+ */
 typedef UserAddressCreateRequest = {
 	>AddressBase,
 }
@@ -122,3 +126,20 @@ typedef ForwardedAddressUpdateRequest = {
 	?forwards:Int,
 	?autoreply:AutoReply
 }
+
+/**
+ * Mailboxes
+ */
+typedef MailboxCreateRequest = {
+	>MailboxBase,
+	path:String,
+}
+
+typedef MailboxSelectRequest = {
+	?specialUse:Bool,
+	?showHidden:Bool,
+	?counters:Bool,
+	?sizes:Bool
+}
+
+typedef MailboxUpdateRequest = Mailbox;

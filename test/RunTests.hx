@@ -1,5 +1,6 @@
 package;
 
+import bp.duck.proxy.WildDuckProxy;
 import bp.duck.proxy.models.Requests;
 import bp.duck.proxy.models.Results;
 import tink.http.containers.*;
@@ -28,7 +29,7 @@ class RunTests {
 	static function main() {
 		ANSI.stripIfUnavailable = false;
 		var reporter = new BasicReporter(new AnsiFormatter());
-		Runner.run(TestBatch.make([new UserTests(), new AddressTests()]), reporter).handle(Runner.exit);
+		Runner.run(TestBatch.make([new UserTests(), new AddressTests(), new MailboxTests()]), reporter).handle(Runner.exit);
 	}
 }
 
@@ -36,12 +37,11 @@ class ProxyTestBase {
 	public function new() {}
 
 	var wildDuckProxy:bp.duck.Proxy;
-
+	var client:NodeClient;
 	@:setup
 	public function setup() {
-		var client = new NodeClient();
+		client = new NodeClient();
 		wildDuckProxy = new bp.duck.Proxy(client, new RemoteEndpoint(new Host('localhost', 8080)));
-		trace('setup');
 		return Noise;
 	}
 }
@@ -60,16 +60,14 @@ class UserTests extends ProxyTestBase {
 			password: "someSecret",
 			address: 'test$random@brave-pi.io',
 		};
-		trace(request);
 		wildDuckProxy.users().create(request).next(res -> {
 			asserts.assert(res.success);
-
 			State.userId = res.id;
 
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(e == null);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 
@@ -83,7 +81,7 @@ class UserTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(e == null);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
@@ -95,7 +93,7 @@ class UserTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(e == null);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
@@ -115,7 +113,7 @@ class UserTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(e == null);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
@@ -123,19 +121,17 @@ class UserTests extends ProxyTestBase {
 
 	public function update_pass() {
 		wildDuckProxy.users().get(State.userId).update({
-			existingPassword: newPass,
+			// existingPassword: newPass,
 			password: 'foobarbazquxquux'
 		}).next(res -> {
 			// TODO: investigate password verification failure
-			// asserts.assert(res.success);
-
-			asserts.assert(res != null);
+			asserts.assert(res.success);
 			if (res.error != null)
 				trace(res.error);
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(e == null);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
@@ -156,7 +152,7 @@ class UserTests extends ProxyTestBase {
 @:asserts
 class AddressTests extends ProxyTestBase {
 	var addressId:String;
-	var addresses(get, never):tink.web.proxy.Remote<bp.duck.proxy.WildDuckProxy.UserAddressProxy>;
+	var addresses(get, never):tink.web.proxy.Remote<UserAddressProxy>;
 
 	inline function get_addresses()
 		return this.wildDuckProxy.users().get(State.userId).addresses();
@@ -171,7 +167,7 @@ class AddressTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(false);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
@@ -184,24 +180,23 @@ class AddressTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(false);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;
 	}
+
 	function checkAddressName(asserts:AssertionBuffer, ?name:String = "tink_address")
 		return addresses.get(addressId).next(res -> {
-			
 			asserts.assert(res.success);
 			asserts.assert(res.name == name);
 			asserts.done();
-		})
-		.tryRecover(e -> {
+		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(false);
+			asserts.assert(false, '$e');
 			asserts.done();
-		})
-		.eager();
+		}).eager();
+
 	public function address_info() {
 		checkAddressName(asserts);
 		return asserts;
@@ -213,16 +208,14 @@ class AddressTests extends ProxyTestBase {
 		}).next(res -> {
 			asserts.assert(res.success);
 			asserts.done();
-		})
-		.tryRecover(e -> {
+		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(false);
+			asserts.assert(false, '$e');
 			asserts.done();
-		})
-		.eager();
+		}).eager();
 		return asserts;
 	}
-	
+
 	public function verify_update() {
 		checkAddressName(asserts, 'bp_address');
 		return asserts;
@@ -234,7 +227,95 @@ class AddressTests extends ProxyTestBase {
 			asserts.done();
 		}).tryRecover(e -> {
 			trace(e);
-			asserts.assert(false);
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+}
+
+@:asserts
+class MailboxTests extends ProxyTestBase {
+	var mailboxes(get, never):tink.web.proxy.Remote<UserMailboxProxy>;
+	var mailboxId:String;
+
+	inline function get_mailboxes()
+		return this.wildDuckProxy.users().get(State.userId).mailboxes();
+
+	public function create_mailbox() {
+		mailboxes.create({
+			path: 'Some New Mailbox'
+		}).next(res -> {
+			asserts.assert(res.success);
+			mailboxId = res.id;
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	public function mailbox_select() {
+		mailboxes.select({
+			counters: true,
+			sizes: true,
+			showHidden: true
+		}).next(res -> {
+			asserts.assert(res.success);
+			asserts.assert(res.results.length == 6);
+			var boxNames = ['INBOX', 'Drafts', 'Junk', 'Sent Mail', 'Some New Mailbox', 'Trash'];
+			res.results.iter(mailbox -> {
+				var foundBox = boxNames.find(boxName -> boxName == mailbox.name);
+				if (foundBox != null)
+					asserts.assert(mailbox.name == foundBox);
+				else
+					asserts.assert(false, 'Could not find box ${mailbox.name}');
+			});
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	public function mailbox_update() {
+		mailboxes.get(this.mailboxId).update({
+			path: 'New Path'
+		}).next(res -> {
+			asserts.assert(res.success);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	public function mailbox_info() {
+		mailboxes.get(this.mailboxId).info().next(res -> {
+			asserts.assert(res.success);
+			asserts.assert(res.path == "New Path");
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+		return asserts;
+	}
+
+	public function delete_mailbox() {
+		mailboxes.get(this.mailboxId).delete().next(res -> {
+			asserts.assert(res.success);
+			asserts.done();
+		}).tryRecover(e -> {
+			trace(e);
+			asserts.assert(false, '$e');
 			asserts.done();
 		}).eager();
 		return asserts;

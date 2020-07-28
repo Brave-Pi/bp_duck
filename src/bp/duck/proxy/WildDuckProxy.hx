@@ -93,6 +93,33 @@ interface OwnUserProxy extends QuotaResetProxy {
 
     @:sub('/addresses')
     function addresses():UserAddressProxy;
+    
+    @:sub('/mailboxes')
+    function mailboxes():UserMailboxProxy;
+}
+
+interface UserMailboxProxy {
+    @:post('/')
+    function create(body:MailboxCreateRequest):MailboxCreateResult;
+
+    
+    @:get('/')
+    function select(body:MailboxSelectRequest):MailboxSelectResult;
+    @:sub('/$id')
+    function get(id:String):MailboxProxy;
+
+    
+}
+
+interface MailboxProxy {
+    @:delete('/')
+    function delete():MailboxDeleteResult;
+
+    @:get('/')
+    function info():MailboxInfoResult;
+
+    @:put('/')
+    function update(body:MailboxUpdateRequest):MailboxUpdateResult;
 }
 
 interface UserAddressProxy {
