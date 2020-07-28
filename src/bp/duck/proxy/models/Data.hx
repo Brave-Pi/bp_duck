@@ -1,7 +1,12 @@
 package bp.duck.proxy.models;
 
 typedef Auditable = {
-	?sess:String
+	?sess:String,
+	?ip:String
+}
+
+typedef HasMeta = {
+	?metaData:DynamicAccess<Dynamic>
 }
 
 typedef AddressBase = {
@@ -26,6 +31,7 @@ typedef AutoReply = {
 };
 
 typedef UserBase = {
+	> HasMeta,
 	?id:String,
 	?username:String,
 	?name:String,
@@ -37,7 +43,6 @@ typedef UserBase = {
 	?autoreply:Bool,
 	?encryptMessages:Bool,
 	?encryptForwarded:Bool,
-	?metaData:Dynamic,
 	?hasPasswordSet:Bool,
 	?activated:Bool,
 	?disabled:Bool,
@@ -74,4 +79,86 @@ typedef Mailbox = {
 	var total(default, null):Int;
 	@:optional
 	var unseen(default, null):Int;
+}
+
+typedef Party = {
+	from:String,
+	address:String
+}
+
+typedef ContentType = {
+	value:String,
+	params:DynamicAccess<String>
+}
+
+typedef MessageBase = {
+	> HasMeta,
+	?id:Int,
+	?mailbox:String,
+	?thread:String,
+	?from:Party,
+	?to:Party,
+	?cc:Party,
+	?bcc:Party,
+	?subject:String,
+	?date:String,
+	?size:Int,
+	?intro:String,
+	?seen:Bool,
+	?deleted:Bool,
+	?flagged:Bool,
+	?answered:Bool,
+	?forwarded:Bool,
+	?contentType:ContentType,
+}
+
+typedef MessageHead = {
+	> MessageBase,
+	?attachments:Bool,
+}
+
+typedef FdBase = {
+	?id:String,
+	?filename:String,
+	?contentType:String,
+}
+
+typedef MessageInfo<AttachmentType, FileType> = {
+	> MessageBase,
+
+	?envelope:{
+		from:String,
+		rcpt:Array<{value:String, formatted:String}>
+	},
+	?messageId:String,
+	?date:String,
+	?list:{
+		id:String,
+		unsubscribe:String
+	},
+	?expires:String,
+	?seen:Bool,
+	?deleted:Bool,
+	?flagged:Bool,
+	?draft:Bool,
+	?html:Array<String>,
+	?text:String,
+	?headers:Array<{key:String, value:String}>,
+	?attachments:Array<AttachmentType>,
+	?verificationResults:{
+		tls:{
+			name:String,
+			version:String
+		},
+		spf:String,
+		dkim:String
+	},
+	?contentType:ContentType,
+	?reference:{
+		?mailbox:String,
+		?id:Int,
+		?action:String,
+		?attachments:Bool
+	},
+	?files:Array<FileType>
 }

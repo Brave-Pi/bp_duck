@@ -1,7 +1,6 @@
 package bp.duck.proxy;
 
-import bp.duck.proxy.models.Requests;
-import bp.duck.proxy.models.Results;
+
 import tink.CoreApi;
 
 // 1.) Translate WildDuck API into tink_web proxy interface
@@ -24,6 +23,8 @@ interface WildDuckProxy extends QuotaResetProxy {
     @:sub('/addresses')
     @:params(accessToken = header['X-Access-Token'])
     function addresses(?accessToken:String):AddressProxy;
+
+    
 
     
 
@@ -96,6 +97,33 @@ interface OwnUserProxy extends QuotaResetProxy {
     
     @:sub('/mailboxes')
     function mailboxes():UserMailboxProxy;
+
+    @:get('/search')
+    function selectMail(query:MessageSelectRequest):MessageSelectResult;
+
+    @:sub('/storage')
+    function storage():StorageProxy;
+
+    @:post('/submit')
+    function submitMessage(body:SubmitMessageRequest):DraftSubmitResult;
+}
+
+interface StorageProxy {
+    @:sub('/$id')
+    function get(id:String):FileProxy;
+    @:get('/')
+    function list(body:FileListRequest):FileListResult;
+    
+}
+
+interface FileProxy {
+    @:delete
+    function delete():FileDeleteResult;
+    @:get
+    function download():FileDownloadResult;
+    @:post
+    function create(body:RealSource, query:FileUploadRequest):FileUploadResult;
+
 }
 
 interface UserMailboxProxy {
@@ -120,6 +148,57 @@ interface MailboxProxy {
 
     @:put('/')
     function update(body:MailboxUpdateRequest):MailboxUpdateResult;
+
+    @:sub('/messages')
+    function messages():MessagesProxy;
+}
+
+interface MessagesProxy {
+
+    @:delete('/')
+    function deleteAll(query:MessagesDeleteRequest):MessagesDeleteResult;
+
+    @:sub('/$id')
+    function get(id:String):MessageProxy;
+
+    @:get('/')
+    function list(query:MessageListRequest):MessageListResult;
+
+    @:put('/')
+    function update(body:MessageUpdateRequest):MessageUpdateResult;
+
+    @:post('/')
+    function create(body:DraftCreateRequest):DraftSubmitResult;
+}
+
+interface MessageProxy {
+    @:delete('/')
+    function delete():MessageDeleteResult;
+
+    @:sub('/attachments')
+    function attachments():AttachmentProxy;
+
+    @:post('/forward')
+    function forward(query:MessageForwardRequest):MessageForwardResult;
+
+    @:get('/message.eml')
+    function download():MessageDownloadResult;
+
+    @:get('/')
+    function info(query:MessageInfoRequest):MessageInfoResult;
+
+    @:post('/submit')
+    function submit(body:DraftSubmitRequest):DraftSubmitResult;
+
+    
+
+}
+
+interface AttachmentProxy {
+    @:get('/$id')
+    function download(id:String):AttachmentDownloadResult;
+
+    
 }
 
 interface UserAddressProxy {

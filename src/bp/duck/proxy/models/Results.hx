@@ -13,6 +13,11 @@ typedef BasicResult = {
 	?error:String
 }
 
+typedef DeleteManyResult = {
+	> BasicResult,
+	?deleted:Int
+}
+
 typedef Identify = {
 	> BasicResult,
 	?id:String
@@ -25,21 +30,23 @@ typedef UserUpsertResult = {
 typedef UserResolutionResult = UserUpsertResult;
 typedef UserDeleteResult = BasicResult;
 
-typedef PaginatedResult = {
-	> BasicResult,
+typedef WithResults<T> = {
+	>BasicResult,
+	?results:Array<T>
+};
+
+typedef PaginatedResult<T> = {
+	> WithResults<T>,
 	?total:Int,
 	?page:Int,
 	?previousCursor:String,
 	?nextCursor:String,
 };
 
-typedef WithResults<T> = {
-	results:Array<T>
-}
+
 
 typedef UserSelectResult = {
-	> PaginatedResult,
-	> WithResults<{
+	> PaginatedResult<{
 		> UserBase, quota:QuotaBase
 	}>,
 }
@@ -93,8 +100,7 @@ typedef UserAddressListResult = {
 }
 
 typedef RegisteredAddressListResult = {
-	> PaginatedResult,
-	> WithResults<{
+	> PaginatedResult<{
 		> AddressBase, > Audited,
 	}>,
 }
@@ -124,8 +130,8 @@ typedef ForwardedAddressUpdateResult = BasicResult;
  * Mailboxes
  */
 typedef MailboxCreateResult = Identify;
-typedef MailboxDeleteResult = BasicResult;
 
+typedef MailboxDeleteResult = BasicResult;
 
 typedef MailboxSelectResult = {
 	> BasicResult,
@@ -133,8 +139,90 @@ typedef MailboxSelectResult = {
 }
 
 typedef MailboxInfoResult = {
-	>Identify,
-	>Mailbox,
+	> Identify,
+	> Mailbox,
 }
 
 typedef MailboxUpdateResult = BasicResult;
+
+/**
+ * Messages
+ */
+typedef MessageDeleteResult = BasicResult;
+
+typedef MessagesDeleteResult = DeleteManyResult;
+typedef AttachmentDownloadResult = RealSource;
+
+typedef SubmissionResult = {
+	> BasicResult,
+	queueId:String,
+}
+
+typedef MessageForwardResult = {
+	> SubmissionResult,
+	forwarded:{
+		seq:String, type:String, value:String
+	}
+}
+
+typedef MessageDownloadResult = tink.io.Source.RealSource;
+
+typedef MessageListResult = {
+	> PaginatedResult<MessageHead>,
+}
+
+typedef AttachmentInfo = {
+	> FdBase,
+	?disposition:String,
+	?transferEncoding:String,
+	?related:Bool,
+	?sizeKb:Int
+}
+
+typedef FileInfo = {
+	> FdBase,
+	?size:String
+}
+
+typedef MessageInfoResult = {
+	> BasicResult,
+	> MessageInfo<AttachmentInfo, FileInfo>,
+	?user:String,
+}
+
+typedef MessageSelectResult = {
+	> PaginatedResult<{ > MessageHead, ?url:String}>,
+}
+
+typedef DraftSubmitResult = {
+	> SubmissionResult,
+	?message:{
+		?mailbox:String,
+		?id:Int
+	}
+}
+
+typedef MessageUpdateResult = {
+	> Identify,
+	?updated:Int
+}
+
+/**
+ * Storage
+ */
+typedef FileDeleteResult = BasicResult;
+
+typedef FileDownloadResult = RealSource;
+
+typedef FileListResult = {
+	> PaginatedResult<{
+		?id:String,
+		?filename:String,
+		?contentType:String,
+		?size:Int
+	}>,
+}
+
+typedef FileUploadResult = {
+	> Identify,
+}

@@ -1,12 +1,14 @@
 package bp.duck.proxy.models;
+
 /**
  * Users
  */
 typedef UserUpsertRequest = {
-	>UserBase, >Auditable,
+	> UserBase,
+	> Auditable,
 	?username:String,
 	?name:String,
-	
+
 	?hashedPassword:String,
 	?allowUnsafe:Bool,
 	?address:String,
@@ -19,7 +21,6 @@ typedef UserUpsertRequest = {
 	?encryptMessages:Bool,
 	?encryptForwarded:Bool,
 	?pubKey:String,
-	?metaData:Dynamic,
 	?language:String,
 	?targets:Array<String>,
 	?spamLevel:Int,
@@ -40,12 +41,10 @@ typedef UserUpsertRequest = {
 	},
 	?disabledScopes:Array<String>,
 	?fromWhiteList:Array<String>,
-	?ip:String
 };
 
 typedef UserDeleteRequest = {
-	>Auditable,
-	?ip:String
+	> Auditable,
 };
 
 typedef PaginatedRequest = {
@@ -64,19 +63,17 @@ typedef UserSelectRequest = {
 }
 
 typedef UserLogoutRequest = {
-    reason:String
+	reason:String
 }
 
 typedef PasswordResetRequest = {
-	>Auditable,
+	> Auditable,
 	?validAfter:String,
-	
-	?ip:String,
 }
 
 typedef UserUpdateRequest = {
-	>UserUpsertRequest,
-	>Auditable,
+	> UserUpsertRequest,
+	> Auditable,
 	?existingPassword:String,
 	?disable2fa:Bool,
 }
@@ -85,11 +82,11 @@ typedef UserUpdateRequest = {
  * Addresses
  */
 typedef UserAddressCreateRequest = {
-	>AddressBase,
+	> AddressBase,
 }
 
 typedef ForwardedAddressCreateRequest = {
-	>ForwardedAddressBase,
+	> ForwardedAddressBase,
 	?autoreply:{
 		?status:Bool,
 		?start:String,
@@ -100,15 +97,16 @@ typedef ForwardedAddressCreateRequest = {
 		?html:String
 	}
 }
+
 typedef AddressResolutionRequest = {
 	?allowWildcard:Bool,
 }
 
 typedef RegisteredAddressListRequest = {
-	>PaginatedRequest,
+	> PaginatedRequest,
 	?query:String,
 	?tags:String,
-	?requiredTags:String   
+	?requiredTags:String
 }
 
 typedef RenameDomainRequest = {
@@ -117,12 +115,12 @@ typedef RenameDomainRequest = {
 }
 
 typedef AddressUpdateRequest = {
-	>AddressProfileBase ,
+	> AddressProfileBase,
 	?name:String,
 }
 
 typedef ForwardedAddressUpdateRequest = {
-	>ForwardedAddressBase,
+	> ForwardedAddressBase,
 	?forwards:Int,
 	?autoreply:AutoReply
 }
@@ -131,7 +129,7 @@ typedef ForwardedAddressUpdateRequest = {
  * Mailboxes
  */
 typedef MailboxCreateRequest = {
-	>MailboxBase,
+	> MailboxBase,
 	path:String,
 }
 
@@ -143,3 +141,95 @@ typedef MailboxSelectRequest = {
 }
 
 typedef MailboxUpdateRequest = Mailbox;
+
+/**
+ * Messages
+ */
+typedef MessagesDeleteRequest = {
+	?async:Bool
+}
+
+typedef MessageForwardRequest = {
+	?target:Int,
+	?addresses:Array<String>
+}
+
+typedef MessageListRequest = {
+	> PaginatedRequest,
+	?unseen:Int,
+	?metaData:Bool
+}
+
+typedef MessageInfoRequest = {
+	?markAsSeen:Bool
+}
+
+typedef MessageSelectRequest = {
+	> PaginatedRequest,
+	?mailbox:String,
+	?thread:String,
+	?query:String,
+	?datestart:Date,
+	?datend:Date,
+	?from:String,
+	?to:String,
+	?subject:String,
+	?flagged:Bool,
+	?unseen:Bool,
+	?searchable:Bool,
+	?or:{
+		query:String,
+		from:String,
+		to:String,
+		subject:String
+	}
+}
+
+typedef DraftSubmitRequest = {
+	deleteFiles:Bool
+}
+
+typedef MessageUpdateRequest = {
+	> HasMeta,
+	?moveTo:String,
+	?seen:Bool,
+	?flagged:Bool,
+	?draft:Bool,
+	?expires:Date,
+}
+
+typedef AttachmentCreate = {
+	> FdBase,
+	?cid:String,
+	?content:String
+}
+
+typedef DraftCreateRequest = {
+	> Auditable,
+	> MessageInfo<AttachmentCreate, String>,
+}
+
+/**
+ * Storage
+ */
+typedef FileListRequest = {
+	>PaginatedRequest,
+	?query:String
+}
+
+typedef FileUploadRequest = {
+	>Auditable,
+	filename:String,
+	contentType:String
+}
+
+/**
+ * Submission
+ */
+
+ typedef SubmitMessageRequest = {
+	 >DraftCreateRequest,
+	 ?uploadOnly:Bool,
+	 ?isDraft:Bool,
+	 ?sendTime:Date
+ }
