@@ -10,4 +10,4 @@ Without further changes the structure is following:
 
 # BPDuck
 
-BP Duck is the public facing Haxe API for [WildDuck](https://github.com/nodemailer/wildduck).
+[`tink_web`](https://haxetink.github.io/tink_web/#/advanced/remoting) remote proxy for [WildDuck](https://github.com/nodemailer/wildduck).
