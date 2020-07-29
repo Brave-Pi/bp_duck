@@ -44,8 +44,8 @@ typedef PaginatedResult<T> = {
 	> WithResults<T>,
 	?total:Int,
 	?page:Int,
-	?previousCursor:String,
-	?nextCursor:String,
+	?previousCursor:Dynamic,
+	?nextCursor:Dynamic,
 };
 
 typedef UserSelectResult = {
@@ -320,9 +320,10 @@ typedef AuthInvalidateResult = BasicResult;
 
 typedef AuthLog = {
 	> Auditable,
+	> Audited,
 	id:String,
 	action:String,
-	result:String,
+	result:String
 }
 
 typedef AuthLogListResult = PaginatedResult<AuthLog>;

@@ -155,7 +155,7 @@ interface UsersProxy {
 	function get(id:String):UserProxy;
 
 	@:get('/')
-	function select(body:UserSelectRequest):UserSelectResult;
+	function select(query:UserSelectRequest):UserSelectResult;
 }
 
 interface UserProxy extends QuotaResetProxy {

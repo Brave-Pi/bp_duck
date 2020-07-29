@@ -2,5 +2,6 @@
 --library tink_macro
 --library tink_web
 --library tink_io
+--library datetime
 -cp src
 -D analyzer-optimized

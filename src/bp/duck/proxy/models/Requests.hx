@@ -60,13 +60,13 @@ typedef PaginatedRequest = {
 
 typedef UserSelectRequest = {
 	> PaginatedRequest,
-	tags:String,
-	requiredTags:String,
-	metaData:Bool
+	?tags:String,
+	?requiredTags:String,
+	?metaData:Bool
 }
 
 typedef UserLogoutRequest = {
-	reason:String
+	?reason:String
 }
 
 typedef PasswordResetRequest = {
