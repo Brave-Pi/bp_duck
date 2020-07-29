@@ -18,16 +18,96 @@ interface WildDuckProxy extends QuotaResetProxy {
 
     @:sub('/users')
     @:params(accessToken = header['X-Access-Token'])
-    function users(?accessToken:String):UserProxy;
+    function users(?accessToken:String):UsersProxy;
     
     @:sub('/addresses')
     @:params(accessToken = header['X-Access-Token'])
     function addresses(?accessToken:String):AddressProxy;
 
-    
+    @:sub('/audit')
+    @:params(accessToken = header['X-Access-Token'])
+    function audit(?accessToken:String):AuditsProxy;
 
-    
+    @:sub('/auth')
+    @:params(accessToken = header['X-Access-Token'])
+    function auth(?accessToken:String):AuthProxy;
 
+    @:sub('/dkim')
+    @:params(accessToken = header['X-Access-Token'])
+    function dkim(?accessToken:String):DkimsProxy;
+
+    @:sub('/domainaliases')
+    @:params(accessToken = header['X-Access-Token'])
+    function domainAliases(?accessToken:String):DomainAliasesProxy;
+
+}
+
+interface DomainAliasesProxy {
+    @:post('/')
+    function create(body:DomainAliasCreateRequest):DomainAliasCreateResult;
+
+    @:sub('$id')
+    function get(id:String):DomainAliasProxy;
+
+    @:get('/')
+    function list():DomainAliasListResult;
+
+    @:get('/resolve/$alias')
+    function resolve(alias:String):DomainAliasResolutionResult;
+}
+
+interface DomainAliasProxy {
+    @:delete('/')
+    function delete():DomainAliasDeleteResult;
+
+    @:get('/')
+    function info():DomainAliasInfoResult;
+}
+
+interface DkimsProxy {
+    @:post('/')
+    function create(body:DkimCreateRequest):DkimCreateResult;
+
+    @:sub('/$id')
+    function get(id:String):DkimProxy;
+
+    @:get('/')
+    function list(query:DkimListRequest):DkimListResult;
+
+    @:get('/resolve/$domain')
+    function resolve(domain:String):DkimResolutionResult;
+}
+
+interface DkimProxy {
+    @:delete('/')
+    function delete():DkimDeleteResult;
+
+    @:get('/')
+    function info():DkimInfoResult;
+}
+
+interface AuthProxy {
+    @:post('/')
+    function login(body:AuthenticateRequest):AuthenticateResult;
+
+    @:delete('/')
+    function logout():AuthInvalidateResult;
+}
+
+interface AuditsProxy {
+    @:post('/audit')
+    function create(body:AuditCreateRequest):AuditCreateResult;
+
+    @:sub('/$id')
+    function get(id:String):AuditProxy;
+}
+
+interface AuditProxy {
+    @:get('/export.mbox')
+    function download():AuditExportResult;
+
+    @:get('/')
+    function info():AuditInfoResult;
 }
 
 interface AddressProxy {
@@ -44,6 +124,8 @@ interface AddressProxy {
 
     @:sub('/forwarded')
     function forwarded():ForwardedAddressProxy;
+
+    
     
   
 }
@@ -62,7 +144,7 @@ interface ForwardedAddressProxy {
     @:put('/$address')
     function update(address:String, body:ForwardedAddressUpdateRequest):ForwardedAddressUpdateResult;
 }
-interface UserProxy {
+interface UsersProxy {
 	@:post('/')
     function create(body:UserUpsertRequest):UserUpsertResult;
     
@@ -70,13 +152,13 @@ interface UserProxy {
     function resolve(username:String):UserResolutionResult;
     
 	@:sub('/$id')
-	function get(id:String):OwnUserProxy;
+	function get(id:String):UserProxy;
 
 	@:get('/')
 	function select(body:UserSelectRequest):UserSelectResult;
 }
 
-interface OwnUserProxy extends QuotaResetProxy {
+interface UserProxy extends QuotaResetProxy {
     @:get('/')
     function info():UserInfoResult;
 
@@ -91,6 +173,12 @@ interface OwnUserProxy extends QuotaResetProxy {
 
     @:post('/password/reset') 
     function resetPass(body:PasswordResetRequest):PasswordResetResult;
+    
+    @:post('/submit')
+    function submitMessage(body:SubmitMessageRequest):DraftSubmitResult;
+
+    @:sub('/authlog')
+    function authlog():AuthLogProxy;
 
     @:sub('/addresses')
     function addresses():UserAddressProxy;
@@ -103,16 +191,130 @@ interface OwnUserProxy extends QuotaResetProxy {
 
     @:sub('/storage')
     function storage():StorageProxy;
+    
+    @:sub('/2fa')
+    function twoFactorAuth():TwoFactorAuthProxy;
 
-    @:post('/submit')
-    function submitMessage(body:SubmitMessageRequest):DraftSubmitResult;
+    @:sub('/asps')
+    function asps():ASPsProxy;
+
+    @:sub('/archived')
+    function archives():ArchiveProxy;   
+
+    @:sub('/autoreply')
+    function autoreply():AutoReplyProxy;
+
+    @:sub('/filters')
+    function filters():FiltersProxy;
+}
+
+interface FiltersProxy {
+    @:post('/')
+    function create(body:FilterCreateRequest):FilterCreateResult;
+
+    @:sub('/$id')
+    function get(id:String):FilterProxy;
+
+    @:get('/')
+    function list():FilterListResult;
+}
+
+interface FilterProxy {
+    @:delete('/')
+    function delete():FilterDeleteResult;
+
+    @:get('/')
+    function info():FilterInfoResult;
+
+    @:put('/')
+    function update(body:FilterUpdateRequest):FilterUpdateResult;
+}
+
+interface AutoReplyProxy {
+    @:delete('/')
+    function delete():AutoReplyDeleteResult;
+
+    @:get('/')
+    function info():AutoReplyInfoResult;
+
+    @:put('/')
+    function update(body:AutoReplyUpdateRequest):AutoReplyUpdateResult;
+}
+
+
+interface AuthLogProxy {
+    @:get('/')
+    function list(query:AuthLogListRequest):AuthLogListResult;
+
+    @:get('/$id')
+    function get(id:String):AuthLogResult;
+}
+
+interface ArchiveProxy {
+    @:sub('messages')
+    function messages():ArchiveMessagesProxy;
+
+    @:post('/restore')
+    function restore(body:ArchiveBulkRestoreRequest):ArchiveBulkRestoreResult;
+}
+
+interface ArchiveMessagesProxy {
+    @:get('/')
+    function list(query:ArchiveListRequest):ArchiveListResult;
+
+    @:post('/$message/restore')
+    function restore(message:Int, body:ArchiveRestoreRequest):ArchiveRestoreResult;
+
+}
+
+interface ASPsProxy {
+    @:post('/')
+    function create(body:ASPCreateRequest):ASPCreateResult;
+
+    @:sub('/$id')
+    function get(id:String):ASPProxy;
+
+    @:get('/')
+    function list(query:ASPListRequest):ASPListResult;
+}
+
+interface ASPProxy {
+    @:delete('/')
+    function delete():ASPDeleteResult;
+
+    @:get('/')
+    function info():ASPInfoResult;
+}
+
+
+interface TwoFactorAuthProxy {
+    @:delete('/')
+    function disable(query:TwoFactorAuthDisableRequest):TwoFactorAuthDisableResult;
+
+    @:delete('/totp')
+    function disableTotp(query:TwoFactorAuthTotpDisableRequest):TwoFactorAuthTotpDisableResult;
+
+    @:delete('/custom')
+    function disableCustom(query:CustomTwoFactorAuthDisableRequest):CustomTwoFactorAuthDisableResult;
+
+    @:post('/enable')
+    function enable(body:TwoFactorAuthEnableRequest):TwoFactorAuthEnableResult;
+
+    @:put('/custom')
+    function enableCustom(body:CustomTwoFactorAuthEnableRequest):CustomTwoFactorAuthEnableResult;
+
+    @:post('/totp/setup')
+    function generateTotpSeed(body:TwoFactorAuthGenSeedRequest):TwoFactorAuthGenSeedResult;
+
+    @:post('/totp/check')
+    function validateTotpToken(body:TwoFactorAuthValidateRequest):TwoFactorAuthValidateResult;
 }
 
 interface StorageProxy {
     @:sub('/$id')
     function get(id:String):FileProxy;
     @:get('/')
-    function list(body:FileListRequest):FileListResult;
+    function list(query:FileListRequest):FileListResult;
     
 }
 

@@ -234,9 +234,9 @@ typedef FileUploadResult = {
 /**
  * Two Factor Auth
  */
-typedef TwoFactorAuthDeleteResult = BasicResult;
 
-typedef TwoFactorAuthDisableResult = BasicResult;
+ typedef TwoFactorAuthDisableResult = BasicResult;
+ typedef TwoFactorAuthTotpDisableResult = BasicResult;
 typedef CustomTwoFactorAuthDisableResult = BasicResult;
 typedef TwoFactorAuthEnableResult = BasicResult;
 typedef CustomTwoFactorAuthEnableResult = BasicResult;

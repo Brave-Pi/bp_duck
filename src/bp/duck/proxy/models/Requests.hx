@@ -234,9 +234,9 @@ typedef SubmitMessageRequest = {
 /**
  * Two Factor Auth
  */
-typedef TwoFactorAuthFADeleteRequest = Auditable;
 
-typedef TwoFactorAuthFADisableRequest = Auditable;
+typedef TwoFactorAuthDisableRequest = Auditable;
+typedef TwoFactorAuthTotpDisableRequest = Auditable;
 typedef CustomTwoFactorAuthDisableRequest = Auditable;
 
 typedef TwoFactorAuthEnableRequest = {
@@ -338,3 +338,4 @@ typedef AutoReplyUpdateRequest = AutoReplyBase<Date>;
   typedef FilterCreateRequest = FilterInfo;
 
   typedef FilterUpdateRequest = FilterInfo;
+
