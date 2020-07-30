@@ -2,8 +2,10 @@ package bp.duck.proxy.models;
 
 #if macro
 import tink.macro.BuildCache;
+
 using tink.MacroApi;
 #end
+
 /**
  * Common
  */
@@ -15,7 +17,6 @@ typedef BasicResult = {
 	?success:Bool,
 	?error:String
 }
-
 
 typedef DeleteManyResult = {
 	> BasicResult,
@@ -234,9 +235,9 @@ typedef FileUploadResult = {
 /**
  * Two Factor Auth
  */
+typedef TwoFactorAuthDisableResult = BasicResult;
 
- typedef TwoFactorAuthDisableResult = BasicResult;
- typedef TwoFactorAuthTotpDisableResult = BasicResult;
+typedef TwoFactorAuthTotpDisableResult = BasicResult;
 typedef CustomTwoFactorAuthDisableResult = BasicResult;
 typedef TwoFactorAuthEnableResult = BasicResult;
 typedef CustomTwoFactorAuthEnableResult = BasicResult;
@@ -255,8 +256,8 @@ typedef TwoFactorAuthValidateResult = BasicResult;
 typedef ASPBaseResult = {
 	> ASPBase,
 	?lastUse:{
-		?time:String,
-		?event:String
+		?time:Dynamic,
+		?event:Dynamic
 	}
 }
 
@@ -270,7 +271,9 @@ typedef ASPDeleteResult = BasicResult;
 
 typedef ASPListResult = {
 	> BasicResult,
-	> WithResults<ASPBaseResult>,
+	> WithResults<{
+		> ASPBaseResult, id:String
+	}>,
 }
 
 typedef ASPInfoResult = {
@@ -311,8 +314,8 @@ typedef AuthenticateResult = {
 	> Identify,
 	username:String,
 	scope:String,
-	require2fa:Array<String>,
-	requirePasswordChange:Bool,
+	?require2fa:Dynamic,
+	?requirePasswordChange:Bool,
 	?token:String
 }
 
@@ -327,8 +330,9 @@ typedef AuthLog = {
 }
 
 typedef AuthLogListResult = PaginatedResult<AuthLog>;
+
 typedef AuthLogResult = {
-	>BasicResult,
+	> BasicResult,
 	> AuthLog,
 };
 
@@ -338,9 +342,10 @@ typedef AuthLogResult = {
 typedef AutoReplyDeleteResult = BasicResult;
 
 typedef AutoReplyInfoResult = {
-	>BasicResult,
+	> BasicResult,
 	> AutoReplyBase<String>,
 }
+
 typedef AutoReplyUpdateResult = BasicResult;
 
 /**
@@ -372,38 +377,36 @@ typedef DkimInfoResult = {
 typedef DkimResolutionResult = {
 	> Identify,
 }
+
 /**
  * Domain Aliases
- * **/
-
+* **/
 typedef DomainAliasCreateResult = Identify;
 
 typedef DomainAliasDeleteResult = BasicResult;
 
 typedef DomainAliasListResult = PaginatedResult<{
-	>Identify,
-	>DomainAlias,
+	> Identify, > DomainAlias,
 }>;
 
 typedef DomainAliasInfoResult = {
-	>Identify,
+	> Identify,
 	> DomainAlias,
 }
 
 typedef DomainAliasResolutionResult = Identify;
- /**
-  * Filters
-  */
 
-  typedef FilterCreateResult = Identify;
+/**
+ * Filters
+ */
+typedef FilterCreateResult = Identify;
 
-  typedef FilterDeleteResult = BasicResult;
+typedef FilterDeleteResult = BasicResult;
+typedef FilterListResult = PaginatedResult<Filter>;
 
-  typedef FilterListResult = PaginatedResult<Filter>;
+typedef FilterInfoResult = {
+	> Identify,
+	> Filter,
+}
 
-  typedef FilterInfoResult = {
-	  >Identify,
-	  > Filter,
-  }
-
-  typedef FilterUpdateResult = Identify;
+typedef FilterUpdateResult = Identify;

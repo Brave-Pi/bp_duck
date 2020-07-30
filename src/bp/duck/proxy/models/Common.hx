@@ -1,6 +1,5 @@
 package bp.duck.proxy.models;
 
-
 typedef Auditable = {
 	?sess:String,
 	?ip:String
@@ -166,7 +165,7 @@ typedef MessageInfo<AttachmentType, FileType> = {
 
 typedef ASPBase = {
 	?description:String,
-	?scope:Array<String>
+	?scopes:Array<String>
 }
 
 typedef AuditBase<DateType> = {
@@ -190,18 +189,19 @@ typedef DkimBase = {
 	?selector:String,
 	?description:String
 }
+
 typedef PrivateDkimBase = {
-	>DkimBase,
+	> DkimBase,
 	?privateKey:String
 }
 
 typedef PublicDkimBase = {
-	>DkimBase,
+	> DkimBase,
 	?fingerprint:String,
 	?publicKey:String,
 }
 
-typedef FilterBase<QueryType,ActionType> = {
+typedef FilterBase<QueryType, ActionType> = {
 	?name:String,
 	?query:QueryType,
 	?action:ActionType,
@@ -227,9 +227,8 @@ typedef ActionInfo = {
 	?targets:Bool,
 }
 
-typedef FilterInfo = FilterBase<QueryInfo,ActionInfo>;
-
-typedef Filter = FilterBase<Array<String>,Array<String>>;
+typedef FilterInfo = FilterBase<QueryInfo, ActionInfo>;
+typedef Filter = FilterBase<Array<String>, Array<String>>;
 
 typedef DomainAlias = {
 	?alias:String,

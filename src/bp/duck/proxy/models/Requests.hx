@@ -234,8 +234,8 @@ typedef SubmitMessageRequest = {
 /**
  * Two Factor Auth
  */
-
 typedef TwoFactorAuthDisableRequest = Auditable;
+
 typedef TwoFactorAuthTotpDisableRequest = Auditable;
 typedef CustomTwoFactorAuthDisableRequest = Auditable;
 
@@ -250,11 +250,13 @@ typedef CustomTwoFactorAuthEnableRequest = {
 
 typedef TwoFactorAuthGenSeedRequest = {
 	> Auditable,
+	issuer:String,
 	?label:String
 }
 
 typedef TwoFactorAuthValidateRequest = {
 	> Auditable,
+
 	token:String,
 }
 
@@ -302,7 +304,7 @@ typedef AuthenticateRequest = {
 	password:String,
 	?protocol:String,
 	?scope:String,
-	?token:String,
+	?token:Bool,
 }
 
 typedef AuthLogListRequest = {
@@ -320,22 +322,20 @@ typedef AutoReplyUpdateRequest = AutoReplyBase<Date>;
  * DKIM
  *
  */
- typedef DkimCreateRequest = PrivateDkimBase;
+typedef DkimCreateRequest = PrivateDkimBase;
 
- typedef DkimListRequest = PaginatedRequest;
+typedef DkimListRequest = PaginatedRequest;
 
 /**
  * Domain Aliases
- * **/
- typedef DomainAliasCreateRequest = DomainAlias;
- typedef DomainAliasListRequest = PaginatedRequest;
+* **/
+typedef DomainAliasCreateRequest = DomainAlias;
 
+typedef DomainAliasListRequest = PaginatedRequest;
 
- /**
-  * Filters
-  */
+/**
+ * Filters
+ */
+typedef FilterCreateRequest = FilterInfo;
 
-  typedef FilterCreateRequest = FilterInfo;
-
-  typedef FilterUpdateRequest = FilterInfo;
-
+typedef FilterUpdateRequest = FilterInfo;
