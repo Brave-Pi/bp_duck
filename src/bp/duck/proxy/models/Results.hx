@@ -23,10 +23,12 @@ typedef DeleteManyResult = {
 	?deleted:Int
 }
 
-typedef Identify = {
+typedef IdentifyBase<T> = {
 	> BasicResult,
-	?id:String
+	?id:T
 };
+
+typedef Identify = IdentifyBase<String>;
 
 /**
  * Users
@@ -160,7 +162,7 @@ typedef AttachmentDownloadResult = RealSource;
 
 typedef SubmissionResult = {
 	> BasicResult,
-	queueId:String,
+	?queueId:String,
 }
 
 typedef MessageForwardResult = {
@@ -288,7 +290,7 @@ typedef ASPInfoResult = {
 typedef ArchiveListResult = MessageSelectResult;
 
 typedef ArchiveRestoreResult = {
-	> Identify,
+	> IdentifyBase<Int>,
 	mailbox:String
 }
 

@@ -48,7 +48,8 @@ class RunTests {
 			new MailboxTestsPart1(),
 			// new MailboxTestsPart2(),
 			new StorageTests(),
-			new ASPTests()
+			new ASPTests(),
+			new MessageTestsPart2()
 		]), reporter).handle(Runner.exit);
 	}
 }
@@ -68,6 +69,10 @@ class ProxyTestBase {
 
 	var wildDuckProxy:bp.duck.Proxy;
 	var client:NodeClient;
+	var random(get, never):Int;
+
+	inline function get_random()
+		return State.random;
 
 	@:setup
 	public function setup() {
@@ -88,7 +93,6 @@ class State {
 class UserTests extends ProxyTestBase {
 	@:describe("Should create a user")
 	public function create_user() {
-		var random = State.random;
 		var request = {
 			username: 'test$random',
 			password: "someSecret",
@@ -126,22 +130,17 @@ class UserTests extends ProxyTestBase {
 
 	@:describe("Should be able to resolve a user by username")
 	public function resolve_user() {
-		wildDuckProxy.users()
-			.resolve('test${State.random}')
-			.next(res -> {
-				res.verify(asserts);
-				asserts.assert(res.id == userId);
-				asserts.done();
-			})
-			.reportErrors(asserts)
-			.eager();
+		wildDuckProxy.users().resolve('test$random').next(res -> {
+			res.verify(asserts);
+			asserts.assert(res.id == userId);
+			asserts.done();
+		}).reportErrors(asserts).eager();
 
 		return asserts;
 	}
 
 	@:describe("Should be able to select users with a query")
 	public function select_users() {
-		var random = State.random;
 		var promises = [
 			for (i in 1...11)
 				wildDuckProxy.users().create({
@@ -169,7 +168,7 @@ class UserTests extends ProxyTestBase {
 	public function user_info() {
 		wildDuckProxy.users().get(userId).info().next(res -> {
 			res.verify(asserts);
-			asserts.assert(res.username == 'test${State.random}', 'Should match username of user we created');
+			asserts.assert(res.username == 'test$random', 'Should match username of user we created');
 			asserts.done();
 		}).reportErrors(asserts).eager();
 		return asserts;
@@ -253,7 +252,7 @@ class AddressTests extends ProxyTestBase {
 	@:describe("Should be able to create an address and get an ID")
 	public function create_address() {
 		addresses.create({
-			address: 'some-made-up-address-i-guess-${State.random}@brave-pi.io',
+			address: 'some-made-up-address-i-guess-$random@brave-pi.io',
 			name: 'tink_address',
 		}).next(res -> {
 			res.verify(asserts);
@@ -314,14 +313,16 @@ class AddressTests extends ProxyTestBase {
 	}
 }
 
-@:asserts
-class MailboxTestsPart1 extends ProxyTestBase {
+class MailboxTestBase extends ProxyTestBase {
 	var mailboxes(get, never):tink.web.proxy.Remote<UserMailboxProxy>;
 	var mailboxId:String;
 
 	inline function get_mailboxes()
 		return user.mailboxes();
+}
 
+@:asserts
+class MailboxTestsPart1 extends MailboxTestBase {
 	@:describe("Should be able to create a mailbox")
 	public function create_mailbox() {
 		mailboxes.create({
@@ -395,6 +396,7 @@ class StorageTests extends ProxyTestBase {
 	inline function get_storage()
 		return user.storage();
 
+	@:describe("Should be able to upload a file")
 	public function upload_file() {
 		var fileStream:IdealSource = asys.io.File.readStream('./fixtures/pic.png').idealize(e -> '$e');
 		storage.create(fileStream, {
@@ -418,7 +420,6 @@ class StorageTests extends ProxyTestBase {
 				asserts.assert(results[0].toBytes().compare(results[1].toBytes()) == 0, "Image content should be the same");
 				asserts.done();
 			}).eager();
-
 		}).reportErrors(asserts);
 		return asserts;
 	}
@@ -445,7 +446,7 @@ class ASPTests extends ProxyTestBase {
 			description: "test",
 			scopes: ["imap", "smtp"],
 			generateMobileconfig: true,
-			address: 'test${State.random}@brave-pi.io',
+			address: 'test$random@brave-pi.io',
 			sess: "tink_unittest",
 			ip: "127.0.0.1"
 		}).next(res -> {
@@ -464,7 +465,7 @@ class ASPTests extends ProxyTestBase {
 
 	public function asp_auth() {
 		auth.login({
-			username: 'test${State.random}',
+			username: 'test$random',
 			password: this.password,
 			scope: "smtp"
 		}).next(res -> {
@@ -477,7 +478,7 @@ class ASPTests extends ProxyTestBase {
 
 	public function asp_invalid_scope() {
 		auth.login({
-			username: 'test${State.random}',
+			username: 'test$random',
 			password: this.password,
 			scope: "master"
 		}).next(res -> {
@@ -511,6 +512,159 @@ class ASPTests extends ProxyTestBase {
 				asserts.assert(lastUse == this.loginTime, 'Last use should match the time we audited for our last login [$lastUse] x [$loginTime]');
 			}
 			res.verify(asserts);
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+}
+
+@:asserts
+class MessageTestsPart2 extends MailboxTestBase {
+	var messageId:Int;
+
+	public function submit_message() {
+		asys.io.File.getBytes('./fixtures/pic.png')
+			.next(haxe.crypto.Base64.encode.bind(_, null))
+			.next(fileContent -> {
+				user.submitMessage({
+					isDraft: false,
+					from: {
+						name: 'Test $random',
+						address: 'test$random@brave-pi.io'
+					},
+					html: "<h1>Hello</h1>",
+					meta: {custom: {foo: 'bar'}},
+					attachments: [
+						{
+							filename: 'state-stamp.png',
+							contentType: 'image/png',
+							content: fileContent
+						}
+					],
+					sess: 'tink_unittest',
+					ip: '127.0.0.1',
+				}).next(res -> {
+					res.verify(asserts);
+					this.messageId = res.message.id;
+					this.mailboxId = res.message.mailbox;
+					trace(res);
+					asserts.done();
+				}).reportErrors(asserts).eager();
+			})
+			.eager();
+		return asserts;
+	}
+
+	var attachmentId:String;
+
+	public function check_message_info() {
+		mailboxes.get(mailboxId)
+			.messages()
+			.get(messageId)
+			.info({
+				markAsSeen: true
+			})
+			.next(res -> {
+				res.verify(asserts);
+				trace(res.seen);
+				asserts.assert(res.seen == true, "Should be marked as seen");
+				asserts.assert(res.from.name == 'Test $random');
+				asserts.assert(res.from.address == 'test$random@brave-pi.io');
+				asserts.assert(res.html == "<h1>Hello</h1>");
+				asserts.assert(res.metaData['foo'] == "bar");
+				switch res.attachments {
+					case [
+						{
+							id: attachmentId,
+							filename: filename,
+							contentType: contentType,
+							disposition: _,
+							transferEncoding: _,
+							related: _,
+							sizeKb: _
+						}
+					]:
+						this.attachmentId = attachmentId;
+						asserts.assert(filename == "state-stamp.png");
+						asserts.assert(contentType == "image/png");
+					default:
+						asserts.assert(false, 'Attachment mismatch: ${res.attachments}');
+				}
+				asserts.done();
+			})
+			.reportErrors(asserts)
+			.eager();
+		return asserts;
+	}
+
+	public function check_attachment_content() {
+		Promise.inParallel([
+			mailboxes.get(mailboxId).messages().get(messageId).attachments().download(attachmentId).next(res -> {
+				res.body.all();
+			}),
+			asys.io.File.getBytes('./fixtures/pic.png').next(tink.Chunk.ofBytes)
+		]).next(results -> {
+			asserts.assert(results[0].toBytes().compare(results[1].toBytes()) == 0, "Attachment content should match upload");
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	var archives(get, never):tink.web.proxy.Remote<ArchiveProxy>;
+
+	inline function get_archives()
+		return user.archives();
+
+	public function delete_message() {
+		mailboxes.get(mailboxId)
+			.messages()
+			.get(messageId)
+			.delete()
+			.next(res -> {
+				res.verify(asserts);
+				asserts.done();
+			})
+			.reportErrors(asserts)
+			.eager();
+		return asserts;
+	}
+
+	var archiveMessageId:String;
+
+	public function check_archive() {
+		archives.messages().list({
+			limit: 1,
+			page: 1,
+		}).next(res -> {
+			res.verify(asserts);
+			switch res.results {
+				case [archivedMessage]:
+					asserts.assert(archivedMessage.mailbox == mailboxId);
+					archiveMessageId = archivedMessage.id;
+				default:
+					asserts.assert(false, 'Archived messages mismatch: ${res.results}');
+			}
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	public function restore_message() {
+		archives.messages().restore(archiveMessageId, {}).next(res -> {
+			res.verify(asserts);
+			asserts.assert(this.mailboxId == res.mailbox, "Should have been restored to the same mailbox it was deleted from");
+			this.messageId = res.id;
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	public function check_mailbox() {
+		mailboxes.get(mailboxId).messages().get(messageId).info({
+			markAsSeen: true
+		}).next(res -> {
+			res.verify(asserts);
+			asserts.assert(res.seen == true, "Should be marked as seen");
 			asserts.done();
 		}).reportErrors(asserts).eager();
 		return asserts;

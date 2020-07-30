@@ -251,7 +251,7 @@ interface ArchiveMessagesProxy {
 	function list(query:ArchiveListRequest):ArchiveListResult;
 
 	@:post('/$message/restore')
-	function restore(message:Int, body:ArchiveRestoreRequest):ArchiveRestoreResult;
+	function restore(message:String, body:ArchiveRestoreRequest):ArchiveRestoreResult;
 }
 
 interface ASPsProxy {
@@ -344,7 +344,7 @@ interface MessagesProxy {
 	function deleteAll(query:MessagesDeleteRequest):MessagesDeleteResult;
 
 	@:sub('/$id')
-	function get(id:String):MessageProxy;
+	function get(id:Int):MessageProxy;
 
 	@:get('/')
 	function list(query:MessageListRequest):MessageListResult;

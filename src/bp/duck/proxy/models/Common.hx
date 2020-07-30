@@ -82,7 +82,7 @@ typedef Mailbox = {
 }
 
 typedef Party = {
-	?from:String,
+	?name:String,
 	?address:String
 }
 
@@ -93,13 +93,13 @@ typedef ContentType = {
 
 typedef MessageBase = {
 	> HasMeta,
-	?id:Int,
+	?id:Dynamic,
 	?mailbox:String,
 	?thread:String,
 	?from:Party,
-	?to:Party,
-	?cc:Party,
-	?bcc:Party,
+	?to:Array<Party>,
+	?cc:Array<Party>,
+	?bcc:Array<Party>,
 	?subject:String,
 	?date:String,
 	?size:Int,
@@ -141,7 +141,7 @@ typedef MessageInfo<AttachmentType, FileType> = {
 	?deleted:Bool,
 	?flagged:Bool,
 	?draft:Bool,
-	?html:Array<String>,
+	?html:Dynamic/* Array<String> */,
 	?text:String,
 	?headers:Array<{key:String, value:String}>,
 	?attachments:Array<AttachmentType>,

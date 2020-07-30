@@ -208,6 +208,7 @@ typedef AttachmentCreate = {
 typedef DraftCreateRequest = {
 	> Auditable,
 	> MessageInfo<AttachmentCreate, String>,
+	?meta:Dynamic
 }
 
 /**
