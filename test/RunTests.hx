@@ -33,7 +33,8 @@ class RunTests {
 			new UserTests(),
 			new AddressTests(),
 			new MailboxTestsPart1(),
-			// new MailboxTestsPart2()
+			// new MailboxTestsPart2(),
+			new StorageTests()
 		]), reporter).handle(Runner.exit);
 	}
 }
@@ -104,7 +105,7 @@ class UserTests extends ProxyTestBase {
 	@:describe("Should be able to resolve a user by username")
 	public function resolve_user() {
 		wildDuckProxy.users().resolve('test${State.random}').next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.assert(res.id == State.userId);
 			asserts.done();
 		})
@@ -132,7 +133,7 @@ class UserTests extends ProxyTestBase {
 				query: 'test',
 				limit: 10
 			}).next(res -> {
-				asserts.assert(res.success);
+				asserts.assert(res.success, "Should have had a successful response");
 				asserts.assert(res.results.length == 10, 'Found at least 10 users matching query (${res.total})');
 				asserts.done();
 			}).tryRecover(e -> {
@@ -162,7 +163,7 @@ class UserTests extends ProxyTestBase {
 			sess: 'tink_unittest',
 			ip: '127.0.0.1'
 		}).next(res -> {
-			asserts.assert(res.success);
+			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
 			asserts.assert(false, '$e');
@@ -244,7 +245,7 @@ class UserTests extends ProxyTestBase {
 @:asserts
 class AddressTests extends ProxyTestBase {
 	var addressId:String;
-	var addresses(get, never):tink.web.proxy.Remote<UserAddressProxy>;
+	var addresses(get, never):tink.web.proxy.Remote<UserAddressesProxy>;
 
 	inline function get_addresses()
 		return this.wildDuckProxy.users().get(State.userId).addresses();
@@ -280,7 +281,7 @@ class AddressTests extends ProxyTestBase {
 	}
 
 	function checkAddressName(asserts:AssertionBuffer, ?name:String = "tink_address")
-		return addresses.get(addressId).next(res -> {
+		return addresses.get(addressId).info().next(res -> {
 			asserts.assert(res.success, "Should have had a successful response");
 			asserts.assert(res.name == name, 'Name for Address #$addressId matches the name we set');
 			asserts.done();
@@ -297,7 +298,7 @@ class AddressTests extends ProxyTestBase {
 
 	@:describe("Should be able to update the address")
 	public function update_address() {
-		addresses.update(addressId, {
+		addresses.get(addressId).update({
 			name: "bp_address"
 		}).next(res -> {
 			asserts.assert(res.success, "Should have had a successful response");
@@ -317,7 +318,7 @@ class AddressTests extends ProxyTestBase {
 
 	@:describe("Should be able to delete the address")
 	public function delete_address() {
-		addresses.delete(addressId).next(res -> {
+		addresses.get(addressId).delete().next(res -> {
 			asserts.assert(res.success, "Should have had a successful response");
 			asserts.done();
 		}).tryRecover(e -> {
@@ -416,4 +417,52 @@ class MailboxTestsPart1 extends ProxyTestBase {
 		}).eager();
 		return asserts;
 	}
+}
+
+@:asserts
+class StorageTests extends ProxyTestBase {
+	var storage(get, never):tink.web.proxy.Remote<StorageProxy>;
+	var fileId:String;
+	inline function get_storage()
+		return this.wildDuckProxy.users().get(State.userId).storage();
+
+	public function upload_file() {
+		var fileStream:IdealSource = asys.io.File.readStream('./fixtures/pic.png').idealize(e -> '$e');
+		storage.create(fileStream, {
+			filename: 'state-stamp.png',
+			contentType: 'image/png'
+		}, 'application/binary')
+		.next(res -> {
+			asserts.assert(res.success, "Should have had a successful response");
+			this.fileId = res.id;
+			asserts.done();
+		})
+		.tryRecover(e -> {
+			asserts.assert(false, '$e');
+			asserts.done();
+		}).eager();
+	
+		return asserts;
+	}
+
+	public function download_file() {
+		storage.get(fileId).download().next(res -> {
+			
+			Promise.inParallel([
+				res.body.all(), 
+				asys.io.File.getBytes('./fixtures/pic.png').next(tink.Chunk.ofBytes)
+			])
+			.next(results -> {
+				asserts.assert(results[0].toBytes().compare(results[1].toBytes()) == 0, "Image content should be the same");
+				asserts.done();
+			}).eager();
+		})
+		.tryRecover(e -> {
+			asserts.assert(false, '$e');
+			asserts.done();
+		})
+		.eager();
+		return asserts;
+	}
+
 }

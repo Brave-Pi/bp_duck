@@ -181,7 +181,7 @@ interface UserProxy extends QuotaResetProxy {
     function authlog():AuthLogProxy;
 
     @:sub('/addresses')
-    function addresses():UserAddressProxy;
+    function addresses():UserAddressesProxy;
     
     @:sub('/mailboxes')
     function mailboxes():UserMailboxProxy;
@@ -313,19 +313,24 @@ interface TwoFactorAuthProxy {
 interface StorageProxy {
     @:sub('/$id')
     function get(id:String):FileProxy;
+    
     @:get('/')
     function list(query:FileListRequest):FileListResult;
+
+    @:post('/')
+    @:params(contentType = header['Content-Type'])
+    function create(body:IdealSource, query:FileUploadRequest, contentType:String):FileUploadResult;
+
     
+
 }
 
 interface FileProxy {
-    @:delete
+    @:delete('/')
     function delete():FileDeleteResult;
-    @:get
+    @:get('/')
     function download():FileDownloadResult;
-    @:post
-    function create(body:RealSource, query:FileUploadRequest):FileUploadResult;
-
+  
 }
 
 interface UserMailboxProxy {
@@ -403,22 +408,26 @@ interface AttachmentProxy {
     
 }
 
-interface UserAddressProxy {
+interface UserAddressesProxy {
     @:post('/')
     function create(body:UserAddressCreateRequest):UserAddressCreateResult;
     
-
-    @:delete('/$id')
-    function delete(id:String):UserAddressDeleteResult;
-
-
+    
     @:get('/')
     function list():UserAddressListResult;
 
-    @:get('/$id')
-    function get(id:String):AddressInfoResult;
+    @:sub('/$id')
+    function get(id:String):UserAddressProxy;
 
-    @:put('/$id')
-    function update(id:String, body:AddressUpdateRequest):AddressUpdateResult;
+}
 
+interface UserAddressProxy {
+    @:delete('/')
+    function delete():UserAddressDeleteResult;
+
+    @:get('/')
+    function info():AddressInfoResult;
+
+    @:put('/')
+    function update(body:AddressUpdateRequest):AddressUpdateResult;
 }

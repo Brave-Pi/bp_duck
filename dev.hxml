@@ -1,7 +1,9 @@
 --library bp_grpc
 --library tink_macro
 --library tink_web
+--library tink_multipart
 --library tink_io
 --library datetime
+--library asys
 -cp src
 -D analyzer-optimized
