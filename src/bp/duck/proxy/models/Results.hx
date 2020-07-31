@@ -15,7 +15,8 @@ typedef Audited = {
 
 typedef BasicResult = {
 	?success:Bool,
-	?error:String
+	?error:String,
+	?code:String
 }
 
 typedef DeleteManyResult = {
@@ -355,7 +356,7 @@ typedef AutoReplyUpdateResult = BasicResult;
  */
 typedef PublicDkimInfo = {
 	> PublicDkimBase,
-	dnsTxt:{
+	?dnsTxt:{
 		name:String, value:String
 	}
 }

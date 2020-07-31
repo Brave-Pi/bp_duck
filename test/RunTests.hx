@@ -49,7 +49,8 @@ class RunTests {
 			// new MailboxTestsPart2(),
 			new StorageTests(),
 			new ASPTests(),
-			new MessageTestsPart2()
+			new MessageTestsPart2(),
+			new DkimTests()
 		]), reporter).handle(Runner.exit);
 	}
 }
@@ -650,23 +651,88 @@ class MessageTestsPart2 extends MailboxTestBase {
 	}
 
 	public function restore_message() {
-		archives.messages().restore(archiveMessageId, {}).next(res -> {
+		archives.messages()
+			.restore(archiveMessageId, {})
+			.next(res -> {
+				res.verify(asserts);
+				asserts.assert(this.mailboxId == res.mailbox, "Should have been restored to the same mailbox it was deleted from");
+				this.messageId = res.id;
+				asserts.done();
+			})
+			.reportErrors(asserts)
+			.eager();
+		return asserts;
+	}
+
+	public function check_mailbox() {
+		mailboxes.get(mailboxId)
+			.messages()
+			.get(messageId)
+			.info({
+				markAsSeen: true
+			})
+			.next(res -> {
+				res.verify(asserts);
+				asserts.assert(res.seen == true, "Should be marked as seen");
+				asserts.done();
+			})
+			.reportErrors(asserts)
+			.eager();
+		return asserts;
+	}
+}
+
+@:asserts
+class DkimTests extends ProxyTestBase {
+	var dkim(get, never):tink.web.proxy.Remote<DkimsProxy>;
+
+	inline function get_dkim()
+		return wildDuckProxy.dkim();
+
+	var dkimId:String;
+	var fingerprint:String;
+
+	public function create_dkim() {
+		dkim.create({
+			domain: "brave-pi.io",
+			selector: "foo",
+			description: "Key for unit testing"
+		}).next(res -> {
 			res.verify(asserts);
-			asserts.assert(this.mailboxId == res.mailbox, "Should have been restored to the same mailbox it was deleted from");
-			this.messageId = res.id;
+			asserts.assert((this.dkimId = res.id) != null, "Should have gotten a dkim back");
+			this.fingerprint = res.fingerprint;
+			asserts.assert(res.domain == "brave-pi.io", "Should match the domain we set");
+			asserts.assert(res.selector == 'foo', "Should match selector we set");
+			asserts.assert(res.description == "Key for unit testing", "Should match description we set");
 			asserts.done();
 		}).reportErrors(asserts).eager();
 		return asserts;
 	}
 
-	public function check_mailbox() {
-		mailboxes.get(mailboxId).messages().get(messageId).info({
-			markAsSeen: true
+	public function resolve_dkim() {
+		dkim.resolve('brave-pi.io').next(res -> {
+			res.verify(asserts);
+			asserts.assert(res.id == this.dkimId);
+			dkim.get(res.id).info();
 		}).next(res -> {
 			res.verify(asserts);
-			asserts.assert(res.seen == true, "Should be marked as seen");
+			asserts.assert(res.fingerprint == fingerprint, "Fingerprint should match");
 			asserts.done();
 		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	public function delete_dkim() {
+		dkim.get(dkimId).delete().next(res -> {
+			res.verify(asserts);
+			dkim.get(dkimId).info();
+		}).next(res -> {
+			asserts.assert(res.code == "DkimNotFound", 'Should be unable to find DKIM (${ ({error: res.error, code: res.code}) }})');
+			asserts.done();
+		}).tryRecover(e -> {
+			asserts.assert(e.code == NotFound, 'Should be unable to find DKIM ($e)');
+			asserts.done();
+		}).eager();
 		return asserts;
 	}
 }
