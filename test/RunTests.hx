@@ -50,7 +50,8 @@ class RunTests {
 			new StorageTests(),
 			new ASPTests(),
 			new MessageTestsPart2(),
-			new DkimTests()
+			new DkimTests(),
+			new DomainAliasTests()
 		]), reporter).handle(Runner.exit);
 	}
 }
@@ -733,6 +734,52 @@ class DkimTests extends ProxyTestBase {
 			asserts.assert(e.code == NotFound, 'Should be unable to find DKIM ($e)');
 			asserts.done();
 		}).eager();
+		return asserts;
+	}
+}
+
+@:asserts
+class DomainAliasTests extends ProxyTestBase {
+	var aliases(get, never):tink.web.proxy.Remote<DomainAliasesProxy>;
+
+	inline function get_aliases()
+		return wildDuckProxy.domainAliases();
+
+	var alias:String;
+
+	public function create_alias() {
+		aliases.create({
+			domain: 'brave-pi.io',
+			alias: 'bp.io'
+		}).next(res -> {
+			res.verify(asserts);
+			this.alias = res.id;
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	public function check_alias() {
+		aliases.resolve('bp.io').next(res -> {
+			res.verify(asserts);
+			asserts.assert(res.id == this.alias, "Should match id of alias we created");
+			aliases.get(res.id).info();
+		}).next(res -> {
+			res.verify(asserts);
+			asserts.assert(res.domain == "brave-pi.io");
+			asserts.done();
+		}).reportErrors(asserts).eager();
+		return asserts;
+	}
+
+	public function delete_alias() {
+		aliases.get(alias).delete().next(res -> {
+			res.verify(asserts);
+			aliases.resolve('bp.io');
+		}).next(res -> {
+			asserts.assert(res.code == "AliasNotFound", 'Should have been unable to resolve domain alias (${res})');
+			asserts.done();
+		}).reportErrors(asserts).eager();
 		return asserts;
 	}
 }
