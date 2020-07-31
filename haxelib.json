@@ -1,0 +1,24 @@
+{
+    "name": "bp_duck",
+    "license": "MIT",
+    "tags": [
+      "brave-pi",
+      "wildduck",
+      "wild",
+      "duck",
+      "brave",
+      "pi"
+    ],
+    "classPath": "src",
+    "contributors": [
+      "piboistudios",
+      "PhilipHayes"
+    ],
+    "releasenote": "initial release",
+    "version": "0.0.0",
+    "url": "https://github.com/brave-pi/bp_duck/",
+    "dependencies": {
+      "tink_web": "",
+      "tink_io": ""
+    }
+  }
