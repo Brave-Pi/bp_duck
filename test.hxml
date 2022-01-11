@@ -1,8 +1,8 @@
 dev.hxml
---library bp_grpc
+--library bp_grpc:git:https://github.com/brave-pi/bp_grpc
 --library datetime
 --library asys
---library bp_test_utils
+--library bp_test_utils:git:https://github.com/brave-pi/bp_test_utils
 --library tink_unittest
 --library hxnodejs
 --library travix

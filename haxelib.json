@@ -11,11 +11,10 @@
     ],
     "classPath": "src",
     "contributors": [
-      "piboistudios",
-      "PhilipHayes"
+      "piboistudios"
     ],
-    "releasenote": "initial release",
-    "version": "0.0.0",
+    "releasenote": "fix some types",
+    "version": "1.0.1",
     "url": "https://github.com/brave-pi/bp_duck/",
     "dependencies": {
       "tink_web": "",

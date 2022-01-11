@@ -24,12 +24,6 @@ typedef DeleteManyResult = {
 	?deleted:Int
 }
 
-typedef IdentifyBase<T> = {
-	> BasicResult,
-	?id:T
-};
-
-typedef Identify = IdentifyBase<String>;
 
 /**
  * Users

@@ -6,7 +6,7 @@ typedef Auditable = {
 }
 
 typedef HasMeta = {
-	?metaData:DynamicAccess<Dynamic>
+	?metaData:Dynamic
 }
 
 typedef AddressBase = {
@@ -60,7 +60,14 @@ typedef AddressProfileBase = {
 	?name:String
 }
 
+typedef IdentifyBase<T> = {
+	> BasicResult,
+	?id:T
+};
+
+typedef Identify = IdentifyBase<String>;
 typedef MailboxBase = {
+    > Identify,
 	?hidden:Bool,
 	?retention:Int,
 	?path:String,
@@ -88,7 +95,7 @@ typedef Party = {
 
 typedef ContentType = {
 	?value:String,
-	?params:DynamicAccess<String>
+	?params:Dynamic
 }
 
 typedef MessageBase = {
@@ -133,8 +140,8 @@ typedef MessageInfo<AttachmentType, FileType> = {
 	?messageId:String,
 	?date:String,
 	?list:{
-		id:String,
-		unsubscribe:String
+		>Identify,
+		unsubscribe:Dynamic
 	},
 	?expires:String,
 	?seen:Bool,
