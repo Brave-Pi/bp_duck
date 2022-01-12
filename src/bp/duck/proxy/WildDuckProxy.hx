@@ -320,7 +320,7 @@ interface UserMailboxProxy {
 	function create(body:MailboxCreateRequest):MailboxCreateResult;
 
 	@:get('/')
-	function select(body:MailboxSelectRequest):MailboxSelectResult;
+	function select(query:MailboxSelectRequest):MailboxSelectResult;
 	@:sub('/$id')
 	function get(id:String):MailboxProxy;
 }
