@@ -305,7 +305,7 @@ interface StorageProxy {
 
 	@:post('/')
 	@:params(contentType = header['Content-Type'])
-	function create(body:IdealSource, query:FileUploadRequest, contentType:String):FileUploadResult;
+	function create(body:RealSource, query:FileUploadRequest, contentType:String):FileUploadResult;
 }
 
 interface FileProxy {

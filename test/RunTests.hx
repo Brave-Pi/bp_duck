@@ -573,7 +573,7 @@ class MessageTestsPart2 extends MailboxTestBase {
 				asserts.assert(res.from.name == 'Test $random');
 				asserts.assert(res.from.address == 'test$random@brave-pi.io');
 				asserts.assert(res.html == "<h1>Hello</h1>");
-				asserts.assert(res.metaData['foo'] == "bar");
+				asserts.assert(res.metaData.foo == "bar");
 				switch res.attachments {
 					case [
 						{

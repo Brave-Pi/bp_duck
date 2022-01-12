@@ -13,8 +13,8 @@
     "contributors": [
       "piboistudios"
     ],
-    "releasenote": "fix some types",
-    "version": "1.0.1",
+    "releasenote": "fix GET /mailboxes/",
+    "version": "1.0.2",
     "url": "https://github.com/brave-pi/bp_duck/",
     "dependencies": {
       "tink_web": "",
