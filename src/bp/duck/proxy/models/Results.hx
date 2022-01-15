@@ -175,7 +175,7 @@ typedef MessageListResult = {
 
 typedef AttachmentInfo = {
 	> FdBase,
-	?disposition:String,
+	?disposition:Dynamic,
 	?transferEncoding:String,
 	?related:Bool,
 	?sizeKb:Int

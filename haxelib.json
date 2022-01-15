@@ -13,8 +13,8 @@
     "contributors": [
       "piboistudios"
     ],
-    "releasenote": "fix GET /mailboxes/",
-    "version": "1.0.2",
+    "releasenote": "fix message disposition field",
+    "version": "1.0.3",
     "url": "https://github.com/brave-pi/bp_duck/",
     "dependencies": {
       "tink_web": "",
